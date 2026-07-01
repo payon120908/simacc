@@ -1,0 +1,1456 @@
+/* css/style.css - Professional Corporate Theme for Accounting System */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Color Palette */
+    --primary-color: #1e3a8a;      /* Deep Navy */
+    --primary-hover: #172554;      /* Darker Navy */
+    --secondary-color: #475569;    /* Slate Gray */
+    --accent-blue: #0284c7;        /* Trust Blue */
+    --success-green: #10b981;      /* Emerald Green */
+    --danger-red: #ef4444;          /* Crimson Red */
+    --warning-orange: #f97316;     /* Coral Orange */
+    
+    /* Neutral Shades */
+    --bg-main: #f8fafc;            /* Light Slate Gray */
+    --bg-card: #ffffff;            /* Pure White */
+    --bg-header: #0f172a;          /* Dark Slate */
+    --border-color: #e2e8f0;       /* Light Gray Border */
+    --text-primary: #0f172a;       /* Dark slate text */
+    --text-secondary: #475569;     /* Slate text */
+    --text-muted: #94a3b8;         /* Light slate text */
+    
+    /* Layout Sizes */
+    --sidebar-width: 260px;
+    --header-height: 70px;
+    
+    /* Typography & Shadows */
+    --font-stack: 'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-stack);
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* App Container Layout */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--bg-header);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: var(--shadow-lg);
+}
+
+.sidebar-brand {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-brand i {
+    font-size: 24px;
+    color: var(--accent-blue);
+}
+
+.sidebar-brand span {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.sidebar-menu li a:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+
+.sidebar-menu li.active a {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+}
+
+.sidebar-menu li a i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    padding: 16px 24px;
+    font-size: 11px;
+    color: #64748b;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Main Content Area */
+.main-content {
+    margin-left: var(--sidebar-width);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header Styling */
+header {
+    height: var(--header-height);
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    box-shadow: var(--shadow-sm);
+}
+
+.header-title-area h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.company-badge {
+    background-color: #eff6ff;
+    color: var(--primary-color);
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #dbeafe;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.company-badge:hover {
+    background-color: #dbeafe;
+    border-color: #bfdbfe;
+    transform: translateY(-1px);
+}
+
+/* View Container */
+.view-container {
+    padding: 32px;
+    flex-grow: 1;
+}
+
+.view-section {
+    display: none; /* Controlled by JS router */
+}
+
+.view-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dashboard Metrics & Layout */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.metric-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.metric-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.metric-icon.blue { background-color: #eff6ff; color: var(--accent-blue); }
+.metric-icon.green { background-color: #ecfdf5; color: var(--success-green); }
+.metric-icon.red { background-color: #fef2f2; color: var(--danger-red); }
+.metric-icon.orange { background-color: #fff7ed; color: var(--warning-orange); }
+
+.metric-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.metric-footer {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 1024px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Card Component */
+.card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.card-body {
+    padding: 24px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+    background-color: #f1f5f9;
+    color: var(--text-primary);
+}
+
+.btn-success {
+    background-color: var(--success-green);
+    color: #ffffff;
+}
+
+.btn-success:hover {
+    background-color: #059669;
+}
+
+.btn-danger {
+    background-color: var(--danger-red);
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* Form Controls */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-primary);
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Custom Table Design for Accounting Tables */
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.table-accounting {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+}
+
+.table-accounting th {
+    background-color: #f8fafc;
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 14px 16px;
+    border-bottom: 2px solid var(--border-color);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.table-accounting td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.table-accounting tr:last-child td {
+    border-bottom: none;
+}
+
+.table-accounting tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Numeric Formatting for Balance sheets */
+.num-col {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+}
+
+.text-debit { color: var(--success-green); }
+.text-credit { color: var(--warning-orange); }
+
+.row-total {
+    font-weight: 700 !important;
+    background-color: #f1f5f9;
+}
+
+.row-total td {
+    border-top: 2px solid var(--text-primary) !important;
+    border-bottom: 2px double var(--text-primary) !important;
+}
+
+.indent-account-1 { padding-left: 20px !important; }
+.indent-account-2 { padding-left: 35px !important; }
+.indent-account-3 { padding-left: 50px !important; }
+.indent-account-4 { padding-left: 65px !important; }
+.indent-account-5 { padding-left: 80px !important; }
+
+/* Invoices & Bills Creator */
+.invoice-items-table th {
+    text-transform: none;
+    font-size: 13px;
+}
+
+.invoice-summary-box {
+    margin-left: auto;
+    width: 320px;
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.invoice-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.invoice-summary-row.grand-total {
+    font-size: 18px;
+    font-weight: 700;
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+    color: var(--primary-color);
+}
+
+/* Badges */
+.status-badge {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-badge.paid { background-color: #d1fae5; color: #065f46; }
+.status-badge.sent { background-color: #dbeafe; color: #1e40af; }
+.status-badge.draft { background-color: #f3f4f6; color: #374151; }
+.status-badge.unpaid { background-color: #fee2e2; color: #991b1b; }
+
+/* Modal Design */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-container {
+    background-color: var(--bg-card);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+}
+
+.modal-overlay.active .modal-container {
+    transform: scale(1);
+}
+
+.modal-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8fafc;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 28px;
+}
+
+.modal-footer {
+    padding: 20px 28px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background-color: #f8fafc;
+}
+
+/* Invoice Print Preview Sheet */
+.print-invoice-preview {
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    padding: 40px;
+    border-radius: var(--radius-sm);
+    color: #000000;
+    font-size: 12px;
+    font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+    line-height: 1.5;
+}
+
+.print-invoice-header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px solid #000000;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.print-company-info {
+    width: 60%;
+}
+
+.print-doc-meta {
+    width: 35%;
+    text-align: right;
+}
+
+.print-doc-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--primary-color);
+}
+
+.print-parties {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 20px;
+}
+
+.print-party-box {
+    width: 48%;
+    border: 1px solid #e5e7eb;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+}
+
+.print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+}
+
+.print-table th {
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 8px;
+    font-weight: 600;
+    text-align: left;
+}
+
+.print-table td {
+    border: 1px solid #d1d5db;
+    padding: 8px;
+}
+
+.print-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+}
+
+.print-signatures {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 60px;
+    text-align: center;
+}
+
+.print-sig-box {
+    width: 200px;
+    border-top: 1px solid #000000;
+    padding-top: 8px;
+    font-size: 11px;
+}
+
+/* Loading Spinner & Performance Indicator */
+.spinner {
+    border: 3px solid rgba(30, 58, 138, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.progress-container {
+    width: 100%;
+    background-color: #e2e8f0;
+    border-radius: 9999px;
+    height: 12px;
+    margin: 16px 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    width: 0%;
+    transition: width 0.1s ease;
+}
+
+/* Alert notifications */
+.alert-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background-color: var(--bg-header);
+    color: #ffffff;
+    padding: 14px 24px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 2000;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+.alert-toast.active {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.alert-toast.success { border-left: 4px solid var(--success-green); }
+.alert-toast.error { border-left: 4px solid var(--danger-red); }
+
+/* Printing Styles Override - Landscape A4 reports & Invoice pre-print configurations */
+@media print {
+    /* Hide navigation sidebar, headers, and dashboard widgets/buttons */
+    .sidebar, header, .btn, .header-actions, .card-header button, .modal-close, .no-print {
+        display: none !important;
+    }
+    
+    /* Hide filters cards inside reports */
+    #view-tax-reports .card:first-child,
+    #view-journal .card:first-child,
+    #view-ledger .card:first-child,
+    #view-trial-balance .card:first-child,
+    #view-profit-loss .card:first-child,
+    #view-balance-sheet .card:first-child {
+        display: none !important;
+    }
+
+    /* Make active cards full screen for clean prints */
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: transparent !important;
+    }
+
+    .card-body {
+        padding: 0 !important;
+    }
+
+    .table-accounting {
+        width: 100% !important;
+        font-size: 11px !important;
+    }
+
+    .table-accounting th {
+        background-color: #f1f5f9 !important;
+        color: #000000 !important;
+        border-bottom: 2px solid #000000 !important;
+        padding: 8px !important;
+    }
+
+    .table-accounting td {
+        border-bottom: 1px solid #d1d5db !important;
+        padding: 6px 8px !important;
+        color: #000000 !important;
+    }
+
+    .row-total td {
+        border-top: 1.5px solid #000000 !important;
+        border-bottom: 1.5px double #000000 !important;
+        font-weight: 700 !important;
+    }
+
+    body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+    }
+    
+    .view-container {
+        padding: 0 !important;
+    }
+    
+    /* Config for printing Invoice Modal overlay */
+    .modal-overlay.active {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: none !important;
+        backdrop-filter: none !important;
+        display: block !important;
+        opacity: 1 !important;
+        z-index: 9999 !important;
+    }
+    
+    .modal-overlay.active .modal-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        transform: none !important;
+        background-color: #ffffff !important;
+    }
+    
+    .modal-overlay.active .modal-header,
+    .modal-overlay.active .modal-footer {
+        display: none !important;
+    }
+    
+    /* If modal is open, hide the background application */
+    body:has(.modal-overlay.active) .app-container {
+        display: none !important;
+    }
+
+    .print-invoice-preview {
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}
+
+/* =========================================================================
+   AUTHENTICATION SCREEN (LOGIN SCREEN) - Sleek Glassmorphism & Modern UI
+   ========================================================================= */
+body.logged-out .app-container {
+    display: none !important;
+}
+
+body.logged-in .login-container {
+    display: none !important;
+}
+
+body.logged-out {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e3a8a 100%) !important;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100vw;
+    padding: 24px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 10;
+}
+
+.login-container::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0) 70%);
+    top: 15%;
+    left: 20%;
+    z-index: -1;
+    filter: blur(40px);
+}
+
+.login-container::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0) 70%);
+    bottom: 10%;
+    right: 15%;
+    z-index: -1;
+    filter: blur(50px);
+}
+
+.login-card {
+    background: rgba(30, 41, 59, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 480px;
+    padding: 40px;
+    color: #ffffff;
+    animation: loginCardFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes loginCardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.login-logo {
+    font-size: 48px;
+    color: #3b82f6;
+    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 4px 10px rgba(59, 130, 246, 0.3));
+}
+
+.login-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ffffff 60%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-header p {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.login-card .form-group label {
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.login-card .form-group label i {
+    margin-right: 6px;
+    color: #60a5fa;
+}
+
+.login-card .form-control {
+    background-color: rgba(15, 23, 42, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.login-card .form-control::placeholder {
+    color: #64748b;
+}
+
+.login-card .form-control:focus {
+    border-color: #3b82f6;
+    background-color: rgba(15, 23, 42, 0.6);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.login-card select.form-control option {
+    background-color: #1e293b;
+    color: #ffffff;
+}
+
+.login-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border: none;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+}
+
+.login-footer {
+    margin-top: 32px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 24px;
+}
+
+.login-footer p {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.demo-creds {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+    color: #94a3b8;
+    background-color: rgba(15, 23, 42, 0.3);
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px dashed rgba(255, 255, 255, 0.06);
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.demo-creds code {
+    color: #60a5fa;
+    font-family: monospace;
+    font-weight: 600;
+}
+
+.db-status-text {
+    font-size: 11px !important;
+    color: #10b981 !important;
+    font-weight: 500;
+    margin-bottom: 0 !important;
+}
+
+.db-status-text i {
+    margin-right: 4px;
+}
+
+/* =========================================================================
+   HIERARCHICAL CHART OF ACCOUNTS TREEVIEW & SPLIT LAYOUT
+   ========================================================================= */
+.coa-split-container {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.coa-tree-card {
+    flex: 1.2;
+    margin-bottom: 0;
+}
+
+.coa-detail-card {
+    flex: 1;
+    margin-bottom: 0;
+    position: sticky;
+    top: 90px;
+}
+
+@media (max-width: 992px) {
+    .coa-split-container {
+        flex-direction: column;
+    }
+    .coa-tree-card, .coa-detail-card {
+        width: 100%;
+        flex: none;
+    }
+    .coa-detail-card {
+        position: static;
+    }
+}
+
+.coa-tree-body {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 16px 20px !important;
+}
+
+/* Tree Structure Styles */
+#coa-tree-container ul {
+    list-style: none;
+    padding-left: 20px;
+    margin: 0;
+    position: relative;
+}
+
+#coa-tree-container > ul {
+    padding-left: 0; /* No indent for root level */
+}
+
+/* Vertical guide lines */
+#coa-tree-container ul ul::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 10px;
+    width: 1px;
+    background-color: var(--border-color);
+}
+
+#coa-tree-container li {
+    margin: 0;
+    padding: 5px 0 5px 18px;
+    position: relative;
+    line-height: 24px;
+}
+
+/* Horizontal connector lines */
+#coa-tree-container ul ul li::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 16px;
+    width: 10px;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.coa-tree-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s ease;
+    user-select: none;
+    color: var(--text-primary);
+    width: calc(100% - 12px);
+}
+
+.coa-tree-item:hover {
+    background-color: #f1f5f9;
+}
+
+.coa-tree-item.active {
+    background-color: #eff6ff;
+    color: var(--primary-color);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px rgba(30, 58, 138, 0.1);
+}
+
+/* Tree Nodes Icons */
+.coa-tree-item i {
+    font-size: 15px;
+    width: 18px;
+    text-align: center;
+}
+
+.coa-tree-item .fa-folder, 
+.coa-tree-item .fa-folder-open {
+    color: var(--warning-orange);
+}
+
+.coa-tree-item .fa-file-lines {
+    color: var(--accent-blue);
+}
+
+/* Indent levels indicators */
+.coa-level-1 { font-weight: 700; color: var(--primary-color) !important; font-size: 15px !important; }
+.coa-level-2 { font-weight: 600; color: var(--text-primary); }
+.coa-level-3 { font-weight: 500; color: var(--text-secondary); }
+.coa-level-4 { color: var(--text-secondary); }
+.coa-level-5 { color: var(--text-muted); }
+
+/* Collapsible control */
+.coa-tree-node-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.coa-tree-toggle {
+    cursor: pointer;
+    font-size: 12px;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: transform 0.15s ease;
+    margin-right: -4px;
+    z-index: 5;
+}
+
+.coa-tree-toggle:hover {
+    color: var(--text-primary);
+}
+
+.coa-tree-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+.coa-tree-child-list.hidden {
+    display: none;
+}
+
+/* Company Switcher Table Row Select */
+.table-accounting tbody tr.selected {
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+.table-accounting tbody tr.selected td {
+    color: #ffffff !important;
+}
+.table-accounting tbody tr.clickable-row {
+    cursor: pointer;
+}
+
+/* Cloud Sync Badge Styles */
+.sync-badge {
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+.sync-badge:hover {
+    transform: translateY(-1px);
+}
+.sync-badge.disabled {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border-color: #e2e8f0;
+}
+.sync-badge.disabled:hover {
+    background-color: #e2e8f0;
+}
+.sync-badge.syncing {
+    background-color: #fef3c7;
+    color: #d97706;
+    border-color: #fde68a;
+}
+.sync-badge.syncing i {
+    animation: fa-spin 2s linear infinite;
+}
+.sync-badge.synced {
+    background-color: #ecfdf5;
+    color: #059669;
+    border-color: #a7f3d0;
+}
+.sync-badge.synced:hover {
+    background-color: #d1fae5;
+}
+.sync-badge.error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+.sync-badge.error:hover {
+    background-color: #fee2e2;
+}
+
+/* Warning Banner for Local-only Mode */
+.local-warning-banner {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    color: #b45309;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.local-warning-banner p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.local-warning-banner .banner-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+}
+.local-warning-banner .btn-banner-sync {
+    background-color: #d97706;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.local-warning-banner .btn-banner-sync:hover {
+    background-color: #b45309;
+    transform: translateY(-1px);
+}
+.local-warning-banner .btn-banner-dismiss {
+    background: transparent;
+    color: #78350f;
+    border: 1px solid rgba(180, 83, 9, 0.3);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.local-warning-banner .btn-banner-dismiss:hover {
+    background-color: rgba(180, 83, 9, 0.05);
+}
+@media (max-width: 768px) {
+    .local-warning-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    .local-warning-banner .banner-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* Sidebar Submenu styles */
+.sidebar-submenu {
+    list-style: none;
+    padding-left: 14px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    display: none; /* Collapsed by default */
+    flex-direction: column;
+    gap: 4px;
+    border-left: 1px dashed rgba(255, 255, 255, 0.15);
+    margin-left: 24px;
+}
+.sidebar-submenu.open {
+    display: flex;
+}
+.sidebar-submenu li a {
+    display: flex;
+    align-items: center;
+    gap: 10px !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    color: #94a3b8 !important;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.sidebar-submenu li a:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+}
+.sidebar-submenu li.active a {
+    background-color: var(--accent-blue) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.2);
+}
+.sidebar-menu-item-with-submenu > a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.sidebar-menu-item-with-submenu .submenu-arrow {
+    transition: transform 0.2s ease;
+    margin-left: auto;
+}
+.sidebar-menu-item-with-submenu.open .submenu-arrow {
+    transform: rotate(90deg);
+}
+
+/* Make action columns sticky in input tables to ensure delete buttons are always visible */
+#bill-items-table th:last-child, #bill-items-table td:last-child,
+#invoice-items-table th:last-child, #invoice-items-table td:last-child,
+#pc-pay-lines-table th:last-child, #pc-pay-lines-table td:last-child,
+#pc-reim-lines-table th:last-child, #pc-reim-lines-table td:last-child,
+#jv-lines-table th:last-child, #jv-lines-table td:last-child,
+#invoice-payments-table th:last-child, #invoice-payments-table td:last-child,
+#bill-payments-table th:last-child, #bill-payments-table td:last-child {
+    position: sticky;
+    right: 0;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+}
+
+#bill-items-table td:last-child,
+#invoice-items-table td:last-child,
+#pc-pay-lines-table td:last-child,
+#pc-reim-lines-table td:last-child,
+#jv-lines-table td:last-child,
+#invoice-payments-table td:last-child,
+#bill-payments-table td:last-child {
+    background-color: #ffffff;
+    z-index: 1;
+}
+
+#bill-items-table th:last-child,
+#invoice-items-table th:last-child,
+#pc-pay-lines-table th:last-child,
+#pc-reim-lines-table th:last-child,
+#jv-lines-table th:last-child,
+#invoice-payments-table th:last-child,
+#bill-payments-table th:last-child {
+    background-color: #f8fafc;
+    z-index: 2;
+}
+
+#bill-items-table tbody tr:hover td:last-child,
+#invoice-items-table tbody tr:hover td:last-child,
+#pc-pay-lines-table tbody tr:hover td:last-child,
+#pc-reim-lines-table tbody tr:hover td:last-child,
+#jv-lines-table tbody tr:hover td:last-child,
+#invoice-payments-table tbody tr:hover td:last-child,
+#bill-payments-table tbody tr:hover td:last-child {
+    background-color: #f8fafc;
+}

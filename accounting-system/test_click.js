@@ -1,0 +1,1 @@
+const fs = require('fs'); const { JSDOM } = require('jsdom'); const dom = new JSDOM(fs.readFileSync('index.html', 'utf8'), { runScripts: 'dangerously', resources: 'usable' }); setTimeout(() => { const btn = dom.window.document.getElementById('add-inv-item-btn'); if(btn) btn.click(); else console.log('Button not found'); }, 1000);

@@ -1,0 +1,26 @@
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+accounting.db
+
+# Environment variables
+.env
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Logs and Temp files
+*.log
+*.zip
+deploy.zip
+accounting-system-deploy.zip
+temp*
+temp.js
+temp_app.js
+
+# OS generated files
+.DS_Store
+Thumbs.db
