@@ -30,7 +30,10 @@
                 </div>
                 <div class="form-group">
                     <label for="login-password"><i class="fa-solid fa-lock"></i> รหัสผ่าน (Password)</label>
-                    <input type="password" id="login-password" class="form-control" required placeholder="ระบุรหัสผ่าน">
+                    <div style="position: relative;">
+                        <input type="password" id="login-password" class="form-control" required placeholder="ระบุรหัสผ่าน" style="padding-right: 40px;">
+                        <i class="fa-solid fa-eye" onclick="togglePasswordVisibility('login-password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666;"></i>
+                    </div>
                 </div>
                 <div class="form-group" style="display: none;">
                     <label for="login-role"><i class="fa-solid fa-user-shield"></i> สิทธิ์การเข้าใช้งาน (Role)</label>
@@ -984,6 +987,15 @@
                                                 <span>ภาษีหัก ณ ที่จ่าย (WHT):</span>
                                                 <span id="inv-summary-wht">0.00 บาท</span>
                                             </div>
+                                            <div class="invoice-summary-row" id="inv-summary-wht-type-row" style="display: none; align-items: center;">
+                                                <span>ประเภท ภ.ง.ด.:</span>
+                                                <select class="form-control" id="inv-wht-type" style="width: auto; height: auto; padding: 2px 4px; font-size: 13px;">
+                                                    <option value="none" selected>เลือกให้อัตโนมัติ</option>
+                                                    <option value="1">ภ.ง.ด.1 (เงินเดือน)</option>
+                                                    <option value="3">ภ.ง.ด.3 (บุคคลธรรมดา)</option>
+                                                    <option value="53">ภ.ง.ด.53 (นิติบุคคล)</option>
+                                                </select>
+                                            </div>
                                             <div class="invoice-summary-row grand-total">
                                                 <span>ยอดชำระสุทธิ (Net to Pay):</span>
                                                 <span id="inv-summary-grand">0.00 บาท</span>
@@ -1044,6 +1056,7 @@
                                                     <select class="form-control" id="bill-vendor-select" style="flex: 1;">
                                                         <option value="manual">-- พิมพ์ข้อมูลเอง --</option>
                                                     </select>
+                                                    <button type="button" class="btn btn-secondary" id="btn-quick-add-vendor-bill" style="padding: 0 12px; background-color: #10b981; border-color: #059669; color: white;" title="เพิ่มคู่ค้า/เจ้าหนี้ใหม่" onclick="try { window.openQuickAddVendorBill(); } catch(e) { console.error(e); }"><i class="fa-solid fa-user-plus"></i></button>
                                                     <input type="text" class="form-control" required id="bill-vendor-name" placeholder="บจก. พลังงานไฟฟ้า" style="flex: 1;">
                                                 </div>
                                             </div>
@@ -1073,7 +1086,10 @@
                                         <div style="margin: 16px 0; border-top: 1px solid var(--border-color); padding-top: 16px;">
                                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                                 <label style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin: 0;">รายละเอียดบิลค่าใช้จ่าย</label>
-                                                <button type="button" id="add-bill-item-btn" class="btn btn-secondary btn-sm" style="padding: 4px 12px;"><i class="fa-solid fa-plus"></i> เพิ่มรายการ</button>
+                                                <div style="display: flex; gap: 8px;">
+                                                    <button type="button" id="quick-add-expense-catalog-btn" class="btn btn-primary btn-sm" style="padding: 4px 12px; background-color: #10b981; border-color: #059669;" onclick="forceOpenQuickAddExpenseCatalog()"><i class="fa-solid fa-book-medical"></i> เพิ่มรหัสค่าใช้จ่ายใหม่</button>
+                                                    <button type="button" id="add-bill-item-btn" class="btn btn-secondary btn-sm" style="padding: 4px 12px;"><i class="fa-solid fa-plus"></i> เพิ่มรายการ</button>
+                                                </div>
                                             </div>
                                             <div class="table-responsive">
                                                 <table class="table-accounting" id="bill-items-table">
@@ -1159,6 +1175,15 @@
                                                 <span>ภาษีหัก ณ ที่จ่าย (WHT):</span>
                                                 <span id="bill-summary-wht">0.00 บาท</span>
                                             </div>
+                                            <div class="invoice-summary-row" id="bill-summary-wht-type-row" style="display: none; align-items: center;">
+                                                <span>ประเภท ภ.ง.ด.:</span>
+                                                <select class="form-control" id="bill-wht-type" style="width: auto; height: auto; padding: 2px 4px; font-size: 13px;">
+                                                    <option value="none" selected>เลือกให้อัตโนมัติ</option>
+                                                    <option value="1">ภ.ง.ด.1 (เงินเดือน)</option>
+                                                    <option value="3">ภ.ง.ด.3 (บุคคลธรรมดา)</option>
+                                                    <option value="53">ภ.ง.ด.53 (นิติบุคคล)</option>
+                                                </select>
+                                            </div>
                                             <div class="invoice-summary-row grand-total">
                                                 <span>ยอดเงินที่โอนจ่ายสุทธิ:</span>
                                                 <span id="bill-summary-grand">0.00 บาท</span>
@@ -1242,7 +1267,7 @@
                                     <form id="expense-catalog-form">
                                         <div class="form-group">
                                             <label for="exp-code">รหัสค่าใช้จ่าย</label>
-                                            <input type="text" id="exp-code" class="form-control" required placeholder="ตัวอย่าง: ค่าขนส่ง หรือ ภงด.53" pattern="^[a-zA-Z0-9\u0e00-\u0e7f.-]+$">
+                                            <input type="text" id="exp-code" class="form-control" required placeholder="ตัวอย่าง: ค่าขนส่ง หรือ ภงด.53" pattern="^[a-zA-Z0-9\u0e00-\u0e7f.\s-]+$">
                                         </div>
                                         <div class="form-group">
                                             <label for="exp-name">ชื่อภาษาไทย</label>
@@ -1795,7 +1820,13 @@
                                         <div class="form-row">
                                             <div class="form-group" style="flex: 1.2;">
                                                 <label>ผู้รับเงิน / หมายเหตุ (Payee/Remarks)</label>
-                                                <input type="text" class="form-control" id="pc-pay-remarks" placeholder="ระบุผู้รับเงินหรือคำอธิบายสั้นๆ..." required>
+                                                <div style="display: flex; gap: 8px;">
+                                                    <select class="form-control" id="pc-pay-contact" style="flex: 1;">
+                                                        <option value="manual">-- พิมพ์ข้อมูลเอง --</option>
+                                                    </select>
+                                                    <button type="button" class="btn btn-secondary" style="padding: 0 12px; background-color: #10b981; border-color: #059669; color: white;" title="เพิ่มคู่ค้า/ผู้จำหน่ายใหม่" onclick="try { window.openQuickAddVendorBill(); } catch(e) { console.error(e); }"><i class="fa-solid fa-user-plus"></i></button>
+                                                    <input type="text" class="form-control" id="pc-pay-remarks" placeholder="ระบุผู้รับเงินหรือคำอธิบายสั้นๆ..." style="flex: 1;">
+                                                </div>
                                             </div>
                                             <div class="form-group" style="flex: 0.8;">
                                                 <label>วันที่จ่ายเงิน</label>
@@ -1814,12 +1845,6 @@
                                         </div>
 
                                         <div class="form-row">
-                                            <div class="form-group" style="flex: 1;">
-                                                <label>ลูกค้า/ผู้จำหน่าย (Contact)</label>
-                                                <select class="form-control" id="pc-pay-contact">
-                                                    <option value="">-- ไม่ระบุ (ทั่วไป) --</option>
-                                                </select>
-                                            </div>
                                             <div class="form-group" style="flex: 0.5;">
                                                 <label>หัก ณ ที่จ่าย (WHT)</label>
                                                 <select class="form-control" id="pc-pay-wht-rate">
@@ -2073,7 +2098,10 @@
                                     </div>
                                     <div class="form-group">
                                         <label>Password</label>
-                                        <input type="password" id="user-password" class="form-control" placeholder="ปล่อยว่างไว้หากไม่ต้องการเปลี่ยน (สำหรับการแก้ไข)">
+                                        <div style="position: relative;">
+                                            <input type="password" id="user-password" class="form-control" placeholder="ปล่อยว่างไว้หากไม่ต้องการเปลี่ยน (สำหรับการแก้ไข)" style="padding-right: 40px;">
+                                            <i class="fa-solid fa-eye" onclick="togglePasswordVisibility('user-password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666;"></i>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label>Role</label>
@@ -3731,8 +3759,55 @@
         }
     </script>
 
+
+    <!-- Quick Add Expense Catalog Modal -->
+    <div class="modal-overlay" id="modal-quick-add-expense-catalog">
+        <div class="modal-container" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="quick-exp-catalog-modal-title"><i class="fa-solid fa-book-medical"></i> เพิ่มรหัสค่าใช้จ่ายใหม่แบบด่วน</h3>
+                <button class="modal-close" onclick="closeModal('modal-quick-add-expense-catalog')">&times;</button>
+            </div>
+            <form id="quick-expense-catalog-form">
+                <div class="modal-body" style="padding: 24px;">
+                    <div class="form-group">
+                        <label for="quick-exp-code">รหัสค่าใช้จ่าย <span style="color: var(--danger-red);">*</span></label>
+                        <input type="text" id="quick-exp-code" class="form-control" required placeholder="ตัวอย่าง: EX-001 หรือ ค่าส่ง" pattern="^[a-zA-Z0-9\u0e00-\u0e7f.\s-]+$">
+                    </div>
+                    <div class="form-group">
+                        <label for="quick-exp-name">ชื่อภาษาไทย <span style="color: var(--danger-red);">*</span></label>
+                        <input type="text" id="quick-exp-name" class="form-control" required placeholder="ชื่อภาษาไทย">
+                    </div>
+                    <div class="form-group">
+                        <label for="quick-exp-account">ผูกบัญชีเดบิต (Expense Account) <span style="color: var(--danger-red);">*</span></label>
+                        <select id="quick-exp-account" class="form-control" required>
+                            <!-- Populated dynamically with expense accounts -->
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quick-exp-vat-type">ประเภท VAT</label>
+                            <select id="quick-exp-vat-type" class="form-control">
+                                <option value="none">ไม่มี VAT (ยกเว้น)</option>
+                                <option value="7">VAT 7%</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="quick-exp-amount">จำนวนเงินตั้งต้น</label>
+                            <input type="number" id="quick-exp-amount" class="form-control num-col" value="0.00" min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-quick-add-expense-catalog')">ยกเลิก</button>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-save"></i> บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Select2 Initialization -->
     <!-- App Initialization scripts -->
-    <script type="module" src="js/app.js?v=30"></script>
+    <script type="module" src="js/app.js?v=51"></script>
     <!-- jQuery & Select2 for Searchable Dropdowns -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -3825,6 +3900,178 @@
             
             observer.observe(document.body, { childList: true, subtree: true });
         });
+    </script>
+
+<script>
+window.forceOpenQuickAddExpenseCatalog = async function() {
+    try {
+        const modal = document.getElementById('modal-quick-add-expense-catalog');
+        if (!modal) { alert('Critical Error: Modal not found!'); return; }
+        
+        // Move to end of body
+        document.body.appendChild(modal);
+        
+        // Apply UNBREAKABLE styles
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('position', 'fixed', 'important');
+        modal.style.setProperty('z-index', '2147483647', 'important');
+        modal.style.setProperty('top', '0', 'important');
+        modal.style.setProperty('left', '0', 'important');
+        modal.style.setProperty('width', '100vw', 'important');
+        modal.style.setProperty('height', '100vh', 'important');
+        modal.style.setProperty('background', 'rgba(0,0,0,0.6)', 'important');
+        modal.style.setProperty('align-items', 'center', 'important');
+        modal.style.setProperty('justify-content', 'center', 'important');
+        modal.style.setProperty('pointer-events', 'auto', 'important');
+        
+        const container = modal.querySelector('.modal-container');
+        if (container) {
+            container.style.setProperty('display', 'block', 'important');
+            container.style.setProperty('opacity', '1', 'important');
+            container.style.setProperty('transform', 'scale(1)', 'important');
+            container.style.setProperty('z-index', '2147483647', 'important');
+        }
+
+        // Close functions
+        const closeBtn = modal.querySelector('.modal-close');
+        const cancelBtn = modal.querySelector('.btn-secondary');
+        const hideModal = (e) => {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            modal.style.setProperty('display', 'none', 'important');
+        };
+        if (closeBtn) closeBtn.onclick = hideModal;
+        if (cancelBtn) cancelBtn.onclick = hideModal;
+        
+        modal.onclick = function(e) {
+            if (e.target === modal) hideModal();
+        };
+
+        // Hijack the form to fix the payload bug and bypass app.js
+        const oldForm = modal.querySelector('#quick-expense-catalog-form');
+        if (oldForm && !oldForm.dataset.hijacked) {
+            const newForm = oldForm.cloneNode(true);
+            newForm.dataset.hijacked = 'true';
+            
+            // Clean up duplicated Select2 DOM elements
+            newForm.querySelectorAll('.select2-container').forEach(el => el.remove());
+            newForm.querySelectorAll('.select2-hidden-accessible').forEach(el => {
+                el.classList.remove('select2-hidden-accessible');
+                el.removeAttribute('data-select2-id');
+                el.removeAttribute('aria-hidden');
+                el.removeAttribute('tabindex');
+            });
+            newForm.querySelectorAll('[data-select2-id]').forEach(el => el.removeAttribute('data-select2-id'));
+            
+            oldForm.parentNode.replaceChild(newForm, oldForm);
+            
+            // Re-initialize select2 correctly
+            if (window.jQuery && window.jQuery.fn.select2) {
+                window.jQuery(newForm).find('select').select2({ width: '100%', dropdownParent: window.jQuery(modal) });
+            }
+            
+            newForm.onsubmit = async function(e) {
+                e.preventDefault();
+                try {
+                    const btn = newForm.querySelector('button[type="submit"]');
+                    const origHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
+                    btn.disabled = true;
+
+                    const code = newForm.querySelector('#quick-exp-code').value;
+                    const name = newForm.querySelector('#quick-exp-name').value;
+                    const expenseAccount = newForm.querySelector('#quick-exp-account').value;
+                    const vatType = newForm.querySelector('#quick-exp-vat-type').value;
+                    const initAmount = parseFloat(newForm.querySelector('#quick-exp-amount').value) || 0;
+
+                    if (!expenseAccount) {
+                        alert('กรุณาเลือกบัญชีเดบิต (Expense Account)');
+                        btn.innerHTML = origHtml; btn.disabled = false;
+                        return;
+                    }
+
+                    // THE BUG FIX: active_company_code
+                    const activeCompany = localStorage.getItem('active_company_code') || localStorage.getItem('ledger_active_company') || 'DEMO';
+                    
+                    const res = await fetch('/api/expense-catalog/' + activeCompany, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            code: code,
+                            name: name,
+                            accountCode: expenseAccount, // FIXED PAYLOAD
+                            vatType: vatType,
+                            amount: initAmount
+                        })
+                    });
+
+                    if (res.ok) {
+                        hideModal();
+                        const toast = document.getElementById('global-toast');
+                        if (toast) {
+                            toast.querySelector('#toast-message').innerText = 'เพิ่มรหัสค่าใช้จ่ายใหม่สำเร็จ';
+                            toast.querySelector('#toast-icon').className = 'fa-solid fa-check-circle';
+                            toast.classList.add('show', 'success');
+                            setTimeout(() => { toast.classList.remove('show', 'success'); }, 3000);
+                        }
+                        newForm.reset();
+                        if (window.jQuery && window.jQuery.fn.select2) {
+                            window.jQuery(newForm).find('select').trigger('change');
+                        }
+                    } else {
+                        const data = await res.json();
+                        alert('ไม่สามารถเพิ่มได้: ' + (data.message || data.error || 'Unknown error'));
+                    }
+                    
+                    btn.innerHTML = origHtml;
+                    btn.disabled = false;
+                } catch (err) {
+                    alert('เกิดข้อผิดพลาด: ' + err.message);
+                }
+            };
+        }
+
+        // Load accounts
+        const selectEl = modal.querySelector('#quick-exp-account');
+        if (selectEl) {
+            const activeCompany = localStorage.getItem('active_company_code') || localStorage.getItem('ledger_active_company') || 'DEMO';
+            selectEl.innerHTML = '<option value="">กำลังโหลดบัญชี...</option>';
+            const res = await fetch('/api/accounts/' + activeCompany);
+            if (res.ok) {
+                const accounts = await res.json();
+                const expenseAccs = accounts.filter(a => a.category === 'expense' && a.type === 'posting');
+                selectEl.innerHTML = '';
+                if (expenseAccs.length > 0) {
+                    expenseAccs.forEach(acc => {
+                        selectEl.innerHTML += `<option value="${acc.code}">${acc.code} - ${acc.name}</option>`;
+                    });
+                } else {
+                    selectEl.innerHTML = '<option value="">-- ไม่พบบัญชีค่าใช้จ่าย --</option>';
+                }
+            } else {
+                selectEl.innerHTML = '<option value="">-- โหลดบัญชีไม่สำเร็จ --</option>';
+            }
+        }
+        
+    } catch(e) {
+        alert("System Error: " + e.message);
+    }
+}
+</script>
+
+    <script>
+        function togglePasswordVisibility(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconElement.classList.remove('fa-eye');
+                iconElement.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                iconElement.classList.remove('fa-eye-slash');
+                iconElement.classList.add('fa-eye');
+            }
+        }
     </script>
 </body>
 </html>

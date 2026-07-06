@@ -287,6 +287,7 @@ def initialize_database():
         total REAL NOT NULL DEFAULT 0.00,
         tax_withheld REAL NOT NULL DEFAULT 0.00,
         net_payable REAL NOT NULL DEFAULT 0.00,
+        wht_type TEXT DEFAULT 'none',
         items TEXT NOT NULL,
         last_updated INTEGER NOT NULL,
         PRIMARY KEY (company_code, id),
@@ -310,6 +311,7 @@ def initialize_database():
         total REAL NOT NULL DEFAULT 0.00,
         tax_withheld REAL NOT NULL DEFAULT 0.00,
         net_payable REAL NOT NULL DEFAULT 0.00,
+        wht_type TEXT DEFAULT 'none',
         items TEXT NOT NULL,
         last_updated INTEGER NOT NULL,
         payment_date TEXT,
@@ -333,6 +335,7 @@ def initialize_database():
         ("address", "TEXT"),
         ("payments", "TEXT"),
         ("journal_id", "TEXT"),
+        ("wht_type", "TEXT DEFAULT 'none'"),
 ]:
         try:
             cursor.execute(f"ALTER TABLE bills ADD COLUMN {col_def[0]} {col_def[1]}")
@@ -349,6 +352,7 @@ def initialize_database():
         ("payment_account", "TEXT"),
         ("payments", "TEXT"),
         ("journal_id", "TEXT"),
+        ("wht_type", "TEXT DEFAULT 'none'"),
 ]:
         try:
             cursor.execute(f"ALTER TABLE invoices ADD COLUMN {col_def[0]} {col_def[1]}")
@@ -811,7 +815,6 @@ class APIRouter:
                         password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
                         
                         conn = get_db()
-                        import time
                         current_time = int(time.time())
                         
                         user = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
@@ -872,7 +875,7 @@ class APIRouter:
                     return True
                 elif method == 'POST':
                     data = json.loads(body_data)
-                    username = data.get('username')
+                    username = data.get('username', '').strip().lower()
                     password = data.get('password')
                     role = data.get('role', 'accountant')
                     company_code = data.get('company_code', '')
@@ -895,7 +898,7 @@ class APIRouter:
                 elif method == 'PUT' and len(path_parts) == 3:
                     user_id = path_parts[2]
                     data = json.loads(body_data)
-                    username = data.get('username')
+                    username = data.get('username', '').strip().lower()
                     role = data.get('role')
                     company_code = data.get('company_code', '')
                     password = data.get('password')
@@ -1345,6 +1348,9 @@ class APIRouter:
                             """, (date, reference, description, is_posted, is_opening, 
                                   vat_type, vat_amount, wht_type, wht_amount, party_name, tax_id, 
                                   last_updated, je_id, company_code))
+                            if cursor.rowcount == 0:
+                                send_json({"message": "Journal entry not found or belongs to another company"}, 404)
+                                return True
                             cursor.execute("DELETE FROM journal_items WHERE journal_entry_id=?", (je_id,))
                         else:
                             cursor.execute("""
@@ -1744,6 +1750,7 @@ class APIRouter:
                     vat_amount = data.get('vatAmount', data.get('vat_amount', 0.0))
                     total = data.get('grandTotal', data.get('totalAmount', data.get('total', 0.0)))
                     wht_rate = data.get('whtRate', data.get('wht_rate', 0.0))
+                    wht_type = data.get('whtType', data.get('wht_type', 'none'))
                     tax_withheld = data.get('whtAmount', data.get('tax_withheld', 0.0))
                     net_payable = total - tax_withheld
                     items_str = json.dumps(data.get('items', []))
@@ -1795,30 +1802,30 @@ class APIRouter:
                                 INSERT INTO bills (
                                     id, company_code, date, supplier_id, due_date, status, 
                                     subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items, last_updated,
-                                    payment_date, payment_account, vendor_name, wht_rate, tax_id, address, payments, journal_id
-                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    payment_date, payment_account, vendor_name, wht_rate, tax_id, address, payments, journal_id, wht_type
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                                 ON CONFLICT(company_code, id) DO UPDATE SET 
                                     date=excluded.date, supplier_id=excluded.supplier_id, due_date=excluded.due_date, status=excluded.status, 
                                     subtotal=excluded.subtotal, vat_rate=excluded.vat_rate, vat_amount=excluded.vat_amount, total=excluded.total, 
                                     tax_withheld=excluded.tax_withheld, net_payable=excluded.net_payable, items=excluded.items, last_updated=excluded.last_updated,
                                     payment_date=excluded.payment_date, payment_account=excluded.payment_account, vendor_name=excluded.vendor_name, wht_rate=excluded.wht_rate,
-                                    tax_id=excluded.tax_id, address=excluded.address, payments=excluded.payments, journal_id=excluded.journal_id
-                            """, (doc_id, company_code, date, party_id, date, status, subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items_str, last_updated, payment_date, payment_account, vendor_name_direct, wht_rate, tax_id_direct, address_direct, payments_str, journal_id_direct))
+                                    tax_id=excluded.tax_id, address=excluded.address, payments=excluded.payments, journal_id=excluded.journal_id, wht_type=excluded.wht_type
+                            """, (doc_id, company_code, date, party_id, date, status, subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items_str, last_updated, payment_date, payment_account, vendor_name_direct, wht_rate, tax_id_direct, address_direct, payments_str, journal_id_direct, wht_type))
                         else:
                             # UPSERT for invoices with extended fields and payments
                             conn.execute("""
                                 INSERT INTO invoices (
                                     id, company_code, date, customer_id, due_date, status, 
                                     subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items, last_updated,
-                                    payment_date, payment_account, customer_name, wht_rate, tax_id, address, payments, journal_id
-                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    payment_date, payment_account, customer_name, wht_rate, tax_id, address, payments, journal_id, wht_type
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                                 ON CONFLICT(company_code, id) DO UPDATE SET 
                                     date=excluded.date, customer_id=excluded.customer_id, due_date=excluded.due_date, status=excluded.status, 
                                     subtotal=excluded.subtotal, vat_rate=excluded.vat_rate, vat_amount=excluded.vat_amount, total=excluded.total, 
                                     tax_withheld=excluded.tax_withheld, net_payable=excluded.net_payable, items=excluded.items, last_updated=excluded.last_updated,
                                     payment_date=excluded.payment_date, payment_account=excluded.payment_account, customer_name=excluded.customer_name, wht_rate=excluded.wht_rate,
-                                    tax_id=excluded.tax_id, address=excluded.address, payments=excluded.payments, journal_id=excluded.journal_id
-                            """, (doc_id, company_code, date, party_id, date, status, subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items_str, last_updated, payment_date, payment_account, vendor_name_direct, wht_rate, tax_id_direct, address_direct, payments_str, journal_id_direct))
+                                    tax_id=excluded.tax_id, address=excluded.address, payments=excluded.payments, journal_id=excluded.journal_id, wht_type=excluded.wht_type
+                            """, (doc_id, company_code, date, party_id, date, status, subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items_str, last_updated, payment_date, payment_account, vendor_name_direct, wht_rate, tax_id_direct, address_direct, payments_str, journal_id_direct, wht_type))
                         conn.commit()
                         send_json({"success": True, "id": doc_id})
                     except Exception as e:
@@ -2468,6 +2475,13 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             if not os.path.exists(local_file_path) and '.' not in os.path.basename(parsed_url.path):
                 self.path = '/index.html'
                 
+            original_end_headers = self.end_headers
+            def custom_end_headers():
+                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+                self.send_header('Pragma', 'no-cache')
+                self.send_header('Expires', '0')
+                original_end_headers()
+            self.end_headers = custom_end_headers
             super().do_GET()
 
     def do_POST(self):
