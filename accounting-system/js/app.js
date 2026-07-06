@@ -10586,7 +10586,7 @@ window.openQuickAddExpenseCatalog = async function() {
 const elPcPayDate = document.getElementById('pc-pay-date');
 if (elPcPayDate) {
     elPcPayDate.addEventListener('change', async () => {
-        if (!editingPcPayId) {
+        if (!editingDPId) {
             const dps = await db.getAll('pettyCashPayments');
             document.getElementById('pc-pay-id').value = getNextDocId(dps, 'DP', elPcPayDate.value);
         }
@@ -10595,7 +10595,7 @@ if (elPcPayDate) {
 const elPcReimDate = document.getElementById('pc-reim-date');
 if (elPcReimDate) {
     elPcReimDate.addEventListener('change', async () => {
-        if (!editingPcReimId) {
+        if (!editingVRId) {
             const vrs = await db.getAll('pettyCashReimbursements');
             document.getElementById('pc-reim-id').value = getNextDocId(vrs, 'VR', elPcReimDate.value);
         }
