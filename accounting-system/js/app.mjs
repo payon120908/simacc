@@ -10589,18 +10589,16 @@ window.openQuickAddExpenseCatalog = async function() {
 const elPcPayDate = document.getElementById('pc-pay-date');
 if (elPcPayDate) {
     elPcPayDate.addEventListener('change', async () => {
-        if (!editingDPId) {
-            const dps = await db.getAll('pettyCashPayments');
-            document.getElementById('pc-pay-id').value = getNextDocId(dps, 'DP', elPcPayDate.value);
+        if (typeof editingDPId !== 'undefined' && !editingDPId) {
+            await generateDocumentIds();
         }
     });
 }
 const elPcReimDate = document.getElementById('pc-reim-date');
 if (elPcReimDate) {
     elPcReimDate.addEventListener('change', async () => {
-        if (!editingVRId) {
-            const vrs = await db.getAll('pettyCashReimbursements');
-            document.getElementById('pc-reim-id').value = getNextDocId(vrs, 'VR', elPcReimDate.value);
+        if (typeof editingVRId !== 'undefined' && !editingVRId) {
+            await generateDocumentIds();
         }
     });
 }
