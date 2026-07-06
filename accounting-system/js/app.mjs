@@ -2499,13 +2499,9 @@ async function addBillItemRow(expenseCode = '', qty = 1, price = 0, hasVat = fal
         return;
     }
     
-        let templates = [];
+    let templates = [];
     try {
         templates = await getExpenseCatalog();
-    } catch (err) {
-        console.error(err);
-        alert('เกิดข้อผิดพลาดในการดึงรหัสค่าใช้จ่าย: ' + err.message);
-        return; // Stop here if failed
     } finally {
         if (btn) btn.innerHTML = '<i class="fa-solid fa-plus"></i> เพิ่มรายการ';
     }
@@ -4163,62 +4159,6 @@ function bindUIActions() {
     });
 
     // 8.2 Expense Catalog Form actions
-        const quickExpCatalogForm = document.getElementById('quick-expense-catalog-form');
-    if (quickExpCatalogForm) {
-        quickExpCatalogForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
-            
-            try {
-                const code = document.getElementById('quick-exp-code').value.trim();
-                const name = document.getElementById('quick-exp-name').value.trim();
-                const accountCode = document.getElementById('quick-exp-account').value;
-                const vatType = document.getElementById('quick-exp-vat-type').value;
-                const amount = parseFloat(document.getElementById('quick-exp-amount').value) || 0.00;
-                
-                if (!accountCode) {
-                    alert('โปรดเลือกบัญชีเดบิตค่าใช้จ่าย');
-                    return;
-                }
-                
-                const existing = await db.getByKey('expenseCatalog', code);
-                if (existing) {
-                    alert('รหัสค่าใช้จ่ายนี้มีอยู่แล้วในระบบ! โปรดระบุรหัสอื่น');
-                    return;
-                }
-                
-                const item = { 
-                    code, 
-                    name, 
-                    nameEn: '', 
-                    category: '01', 
-                    unit: 'ครั้ง', 
-                    vatType, 
-                    amount, 
-                    remarks: '', 
-                    accountCode 
-                };
-                
-                await db.putItem('expenseCatalog', item);
-                showToast('เพิ่มรหัสค่าใช้จ่ายใหม่เรียบร้อยแล้ว', 'success');
-                
-                if (typeof closeModal === 'function') {
-                    closeModal('modal-quick-add-expense-catalog');
-                } else if (window.closeModal) {
-                    window.closeModal('modal-quick-add-expense-catalog');
-                }
-                
-                quickExpCatalogForm.reset();
-            } catch (err) {
-                console.error(err);
-                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.message);
-            } finally {
-                if (btn) btn.innerHTML = '<i class="fa-solid fa-save"></i> บันทึกข้อมูล';
-            }
-        });
-    }
-
     const expCatalogForm = document.getElementById('expense-catalog-form');
     if (expCatalogForm) {
         expCatalogForm.addEventListener('submit', async (e) => {
@@ -6253,7 +6193,7 @@ async function loadContactsDropdowns() {
 
     const pcContactSelect = document.getElementById('pc-pay-contact');
     if (pcContactSelect) {
-        pcContactSelect.innerHTML = '<option value="manual">-- พิมพ์ข้อมูลเอง --</option>';
+        pcContactSelect.innerHTML = '<option value="">-- ไม่ระบุ (ทั่วไป) --</option>';
         
         // Add Customers
         customers.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
@@ -6269,22 +6209,6 @@ async function loadContactsDropdowns() {
             opt.value = s.id;
             opt.textContent = `[เจ้าหนี้] ${s.name}`;
             pcContactSelect.appendChild(opt);
-        });
-        
-        // Add event listener to toggle payee input
-        pcContactSelect.addEventListener('change', async () => {
-            const val = pcContactSelect.value;
-            const remarksInput = document.getElementById('pc-pay-remarks');
-            if (val === 'manual') {
-                remarksInput.value = '';
-                remarksInput.style.display = 'block';
-            } else {
-                const contact = await db.getByKey('contacts', parseInt(val));
-                if (contact) {
-                    remarksInput.value = contact.name;
-                    remarksInput.style.display = 'none';
-                }
-            }
         });
     }
 }
@@ -10519,29 +10443,22 @@ window.openQuickAddVendorBill = function() {
 window._isQuickAddExpenseCatalogLoading = false;
 
 window.openQuickAddExpenseCatalog = async function() {
-    console.log("DEBUG: openQuickAddExpenseCatalog called");
+    if (window._isQuickAddExpenseCatalogLoading) return;
+    
     const btn = document.getElementById('quick-add-expense-catalog-btn');
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DEBUG 1...';
+    window._isQuickAddExpenseCatalogLoading = true;
     
     try {
-        // Open modal DIRECTLY without relying on openModal
-        const modal = document.getElementById('modal-quick-add-expense-catalog');
-        if (modal) {
-            modal.style.display = 'flex';
-            setTimeout(() => {
-                modal.classList.add('active');
-            }, 10);
-        } else {
-            alert('Error: ไม่พบหน้าต่าง (modal-quick-add-expense-catalog) ในระบบ');
-        }
-
         const selectEl = document.getElementById('quick-exp-account');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DEBUG 2...';
+        
         if (selectEl) {
-            selectEl.innerHTML = '<option value="">กำลังโหลดบัญชี...</option>';
+            selectEl.innerHTML = '';
             const accounts = await db.getAll('accounts');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DEBUG 3...';
             const expenseAccs = accounts.filter(a => a.category === 'expense' && a.type === 'posting');
             
-            selectEl.innerHTML = '';
             if (expenseAccs.length > 0) {
                 expenseAccs.forEach(acc => {
                     selectEl.innerHTML += `<option value="${acc.code}">${acc.code} - ${acc.name}</option>`;
@@ -10551,13 +10468,26 @@ window.openQuickAddExpenseCatalog = async function() {
             }
         }
         
+        // Reset form
         const form = document.getElementById('quick-expense-catalog-form');
         if (form) form.reset();
         
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DEBUG 4...';
+        
+        if (typeof openModal === 'function') {
+            openModal('modal-quick-add-expense-catalog');
+        } else if (window.openModal) {
+            window.openModal('modal-quick-add-expense-catalog');
+        } else {
+            console.error('openModal is undefined');
+            alert('openModal is undefined');
+        }
     } catch (err) {
         console.error(err);
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error';
         alert('เกิดข้อผิดพลาด: ' + err.message);
     } finally {
+        window._isQuickAddExpenseCatalogLoading = false;
         setTimeout(() => {
             if (btn) btn.innerHTML = '<i class="fa-solid fa-book-medical"></i> เพิ่มรหัสค่าใช้จ่ายใหม่';
         }, 100);
@@ -10565,3 +10495,76 @@ window.openQuickAddExpenseCatalog = async function() {
 };
 
 
+    // Handle quick add expense catalog form submission using delegation
+    document.addEventListener('submit', async (e) => {
+        if (e.target.id === 'quick-expense-catalog-form') {
+            e.preventDefault();
+            try {
+                const code = document.getElementById('quick-exp-code').value.trim();
+                const name = document.getElementById('quick-exp-name').value.trim();
+                const accountCode = document.getElementById('quick-exp-account').value;
+                const vatType = document.getElementById('quick-exp-vat-type').value;
+                const amount = parseFloat(document.getElementById('quick-exp-amount').value) || 0.00;
+                
+                if (!accountCode) {
+                    alert('โปรดเลือกบัญชีเดบิตค่าใช้จ่ายสำหรับสอดคล้องกับรหัสนี้');
+                    return;
+                }
+                
+                const existing = await db.getByKey('expenseCatalog', code);
+                if (existing) {
+                    alert('รหัสค่าใช้จ่ายนี้มีอยู่แล้วในระบบ! โปรดระบุรหัสอื่น');
+                    return;
+                }
+                
+                const item = { 
+                    code, 
+                    name, 
+                    nameEn: '', 
+                    category: '01', 
+                    unit: 'ครั้ง', 
+                    vatType, 
+                    amount, 
+                    remarks: '', 
+                    accountCode 
+                };
+                
+                await db.putItem('expenseCatalog', item);
+                if (typeof showToast === 'function') {
+                    showToast('เพิ่มรหัสค่าใช้จ่ายใหม่แบบด่วนเรียบร้อยแล้ว');
+                } else {
+                    alert('เพิ่มรหัสค่าใช้จ่ายใหม่แบบด่วนเรียบร้อยแล้ว');
+                }
+                
+                if (window.closeModal) window.closeModal('modal-quick-add-expense-catalog');
+                
+                // Update all existing dropdowns for expense catalogs in bill items
+                const latestTemplates = await db.getAll('expenseCatalog');
+                document.querySelectorAll('.bill-item-code').forEach(select => {
+                    const currentVal = select.value;
+                    let html = '<option value="">-- เลือกค่าใช้จ่าย --</option>';
+                    latestTemplates.forEach(t => {
+                        html += `<option value="${t.code}" ${t.code === currentVal ? 'selected' : ''}>${t.code} - ${t.name}</option>`;
+                    });
+                    select.innerHTML = html;
+                });
+                
+                // Add a new row automatically using the new code if there's a function for it
+                if (typeof addBillItemRow === 'function') {
+                    addBillItemRow();
+                    // Try to set the newly added row's select to this code
+                    setTimeout(() => {
+                        const selects = document.querySelectorAll('.bill-item-code');
+                        if (selects.length > 0) {
+                            const lastSelect = selects[selects.length - 1];
+                            lastSelect.value = code;
+                            lastSelect.dispatchEvent(new Event('change'));
+                        }
+                    }, 100);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('เกิดข้อผิดพลาดในการบันทึกรหัสค่าใช้จ่าย: ' + err.message);
+            }
+        }
+    });
