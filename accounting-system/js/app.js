@@ -351,6 +351,14 @@ window.closeModal = function(modalId) {
 };
 
 // Helper for formatting THB Currency
+function formatDateToDDMMYYYY(dateStr) {
+    if (!dateStr) return '';
+    if (dateStr.includes('/')) return dateStr;
+    const parts = dateStr.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateStr;
+}
+
 function formatMoney(amount) {
     if (amount === undefined || amount === null || isNaN(amount)) return '0.00';
     return Number(amount).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -800,7 +808,7 @@ async function renderDashboard() {
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${entry.date}</td>
+            <td>${formatDateToDDMMYYYY(entry.date)}</td>
             <td><strong>${entry.reference}</strong></td>
             <td>${entry.description}</td>
             <td class="num-col text-debit">${formatMoney(totalDebit)} ฿</td>
@@ -1285,7 +1293,7 @@ async function renderJournal(filteredEntries = null) {
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="vertical-align: top;">${entry.date}</td>
+            <td style="vertical-align: top;">${formatDateToDDMMYYYY(entry.date)}</td>
             <td style="vertical-align: top;"><strong>${entry.reference}</strong></td>
             <td style="vertical-align: top;">
                 <div style="font-weight: 600; margin-bottom: 6px;">${entry.description}</div>
@@ -1398,7 +1406,7 @@ async function renderLedger(startCode, endCode) {
             data.lines.forEach(line => {
                 rowsHtml += `
                     <tr>
-                        <td>${line.date}</td>
+                        <td>${formatDateToDDMMYYYY(line.date)}</td>
                         <td><strong>${line.reference}</strong></td>
                         <td>${line.description}</td>
                         <td class="num-col text-debit">${line.debit > 0 ? formatMoney(line.debit) + ' ฿' : '-'}</td>
@@ -1412,7 +1420,7 @@ async function renderLedger(startCode, endCode) {
                     <tr>
                         <td>${acc.code}</td>
                         <td>${acc.name}</td>
-                        <td>${line.date}</td>
+                        <td>${formatDateToDDMMYYYY(line.date)}</td>
                         <td>${line.reference}</td>
                         <td>${line.description}</td>
                         <td>${line.debit}</td>
@@ -2735,7 +2743,7 @@ async function showDocumentPrintPreview(docType, docId) {
                 <div class="print-doc-meta">
                     <div class="print-doc-title">${inv.status === 'paid' ? 'ใบเสร็จรับเงิน / ใบกำกับภาษี' : 'ใบแจ้งหนี้ / ใบกำกับภาษี'}</div>
                     <p><strong>เลขที่เอกสาร:</strong> ${inv.id}</p>
-                    <p><strong>วันที่ออก:</strong> ${inv.date}</p>
+                    <p><strong>วันที่ออก:</strong> ${formatDateToDDMMYYYY(inv.date)}</p>
                     <p><strong>กำหนดชำระ:</strong> ${inv.dueDate || '-'}</p>
                 </div>
             </div>
@@ -2851,7 +2859,7 @@ async function showDocumentPrintPreview(docType, docId) {
                 <div class="print-doc-meta">
                     <div class="print-doc-title">ใบสำคัญบันทึกหนี้ / บิลค่าใช้จ่าย</div>
                     <p><strong>เลขที่เอกสาร:</strong> ${bill.id}</p>
-                    <p><strong>วันที่ออก:</strong> ${bill.date}</p>
+                    <p><strong>วันที่ออก:</strong> ${formatDateToDDMMYYYY(bill.date)}</p>
                     <p><strong>กำหนดชำระ:</strong> ${bill.dueDate || '-'}</p>
                 </div>
             </div>
@@ -2961,7 +2969,7 @@ async function showDocumentPrintPreview(docType, docId) {
                 <div class="print-doc-meta">
                     <div class="print-doc-title">ใบเสร็จรับเงิน (Receipt)</div>
                     <p><strong>เลขที่เอกสาร:</strong> ${re.id}</p>
-                    <p><strong>วันที่ออก:</strong> ${re.date}</p>
+                    <p><strong>วันที่ออก:</strong> ${formatDateToDDMMYYYY(re.date)}</p>
                 </div>
             </div>
             
@@ -3034,7 +3042,7 @@ async function showDocumentPrintPreview(docType, docId) {
                 <div class="print-doc-meta">
                     <div class="print-doc-title">ใบสำคัญจ่ายเงิน (Payment Voucher)</div>
                     <p><strong>เลขที่เอกสาร:</strong> ${ps.id}</p>
-                    <p><strong>วันที่ออก:</strong> ${ps.date}</p>
+                    <p><strong>วันที่ออก:</strong> ${formatDateToDDMMYYYY(ps.date)}</p>
                 </div>
             </div>
             
@@ -3136,7 +3144,7 @@ async function showDocumentPrintPreview(docType, docId) {
                 <div class="print-doc-meta">
                     <div class="print-doc-title">ใบสำคัญจ่ายเงินสดย่อย (Petty Cash Voucher)</div>
                     <p><strong>เลขที่เอกสาร:</strong> ${dp.id}</p>
-                    <p><strong>วันที่ออก:</strong> ${dp.date}</p>
+                    <p><strong>วันที่ออก:</strong> ${formatDateToDDMMYYYY(dp.date)}</p>
                     <p><strong>ประเภท:</strong> ${dp.type}</p>
                 </div>
             </div>
@@ -3243,7 +3251,7 @@ async function showDocumentPrintPreview(docType, docId) {
                 <div class="print-doc-meta">
                     <div class="print-doc-title">ใบเบิกชดเชยเงินสดย่อย (Reimbursement Voucher)</div>
                     <p><strong>เลขที่เอกสาร:</strong> ${vr.id}</p>
-                    <p><strong>วันที่ออก:</strong> ${vr.date}</p>
+                    <p><strong>วันที่ออก:</strong> ${formatDateToDDMMYYYY(vr.date)}</p>
                 </div>
             </div>
             
@@ -3271,7 +3279,7 @@ async function showDocumentPrintPreview(docType, docId) {
                         <tr>
                             <td>${idx + 1}</td>
                             <td><strong>${dp.id}</strong></td>
-                            <td>${dp.date}</td>
+                            <td>${formatDateToDDMMYYYY(dp.date)}</td>
                             <td>${dp.remarks}</td>
                             <td style="text-align: right; font-family: monospace;">${formatMoney(dp.whtAmount || 0)} ฿</td>
                             <td style="text-align: right; font-family: monospace;">${formatMoney(dp.totalAmount)} ฿</td>
@@ -4325,7 +4333,7 @@ function bindUIActions() {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${bill.id}</strong></td>
-                    <td>${bill.date}</td>
+                    <td>${formatDateToDDMMYYYY(bill.date)}</td>
                     <td>${bill.dueDate || '-'}</td>
                     <td class="num-col" data-outstanding="${outstanding}" style="text-align: right;">${formatMoney(outstanding)} ฿</td>
                     <td>
@@ -4888,7 +4896,7 @@ function bindUIActions() {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${inv.id}</strong></td>
-                    <td>${inv.date}</td>
+                    <td>${formatDateToDDMMYYYY(inv.date)}</td>
                     <td>${inv.dueDate}</td>
                     <td class="num-col" data-outstanding="${outstanding}" style="text-align: right;">${formatMoney(outstanding)} ฿</td>
                     <td>
@@ -5972,7 +5980,7 @@ function renderSalesVatTable(data) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${idx + 1}</td>
-            <td>${row.date}</td>
+            <td>${formatDateToDDMMYYYY(row.date)}</td>
             <td><strong>${row.reference}</strong></td>
             <td>${row.partyName}</td>
             <td>${row.taxId}</td>
@@ -6011,7 +6019,7 @@ function renderPurchaseVatTable(data) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${idx + 1}</td>
-            <td>${row.date}</td>
+            <td>${formatDateToDDMMYYYY(row.date)}</td>
             <td><strong>${row.reference}</strong></td>
             <td>${row.partyName}</td>
             <td>${row.taxId}</td>
@@ -6050,7 +6058,7 @@ function renderWhtTable(data) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${idx + 1}</td>
-            <td>${row.date}</td>
+            <td>${formatDateToDDMMYYYY(row.date)}</td>
             <td><strong>${row.reference}</strong></td>
             <td>${row.partyName}</td>
             <td>${row.taxId}</td>
@@ -6896,7 +6904,7 @@ async function renderARReceiptsList() {
         tr.innerHTML = `
             <td><strong>${re.id}</strong></td>
             <td>${re.customerName}</td>
-            <td>${re.date}</td>
+            <td>${formatDateToDDMMYYYY(re.date)}</td>
             <td class="num-col" style="text-align: right;">${formatMoney(re.grandTotal)} ฿</td>
             <td style="text-align: center;">
                 <button type="button" class="btn btn-secondary btn-sm print-re-btn" data-id="${re.id}" style="padding: 4px 8px; margin-right: 4px;"><i class="fa-solid fa-print"></i> พิมพ์</button>
@@ -6970,7 +6978,7 @@ async function renderAPPaymentsList() {
         tr.innerHTML = `
             <td><strong>${ps.id}</strong></td>
             <td>${ps.supplierName}</td>
-            <td>${ps.date}</td>
+            <td>${formatDateToDDMMYYYY(ps.date)}</td>
             <td class="num-col" style="text-align: right;">${formatMoney(ps.grandTotal)} ฿</td>
             <td style="text-align: center;">
                 <button type="button" class="btn btn-secondary btn-sm print-ps-btn" data-id="${ps.id}" style="padding: 4px 8px; margin-right: 4px;"><i class="fa-solid fa-print"></i> พิมพ์</button>
@@ -7245,30 +7253,35 @@ async function generateDocumentIds() {
     const dps = await db.getAll('pettyCashPayments');
     const vrs = await db.getAll('pettyCashReimbursements');
     
-    const getNextDocId = (docs, prefixLetter) => {
-        const allDocs = docs.filter(x => x.id && x.id.startsWith(prefixLetter));
+    const getNextDocId = (docs, prefixLetter, dateStr) => {
+        const dateObj = dateStr ? new Date(dateStr) : new Date();
+        const yy = dateObj.getFullYear().toString().substring(2);
+        const mm = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const dd = dateObj.getDate().toString().padStart(2, '0');
+        
+        const targetPrefix = `${prefixLetter}${yy}${mm}-${dd}`;
+        
+        const allDocs = docs.filter(x => x.id && x.id.startsWith(targetPrefix));
+        
         if (allDocs.length > 0) {
             // รันต่อจากที่เพิ่มเข้าไปล่าสุด (ตัวสุดท้ายใน array) ไม่หาค่า max
             const lastId = allDocs[allDocs.length - 1].id;
             if (lastId) {
                 return lastId.replace(/(\d+)(?!.*\d)/, (match) => {
                     const nextVal = (parseInt(match, 10) + 1).toString();
-                    return nextVal.padStart(match.length, '0');
+                    return nextVal.padStart(2, '0');
                 });
             }
         }
         
-        const today = new Date();
-        const yy = today.getFullYear().toString().substring(2);
-        const mm = (today.getMonth() + 1).toString().padStart(2, '0');
-        return `${prefixLetter}${yy}${mm}-0001`;
+        return `${targetPrefix}01`;
     };
 
     const pcPayId = document.getElementById('pc-pay-id');
-    if (pcPayId) pcPayId.value = getNextDocId(dps, 'DP');
+    if (pcPayId) pcPayId.value = getNextDocId(dps, 'DP', document.getElementById('pc-pay-date')?.value);
     
     const pcReimId = document.getElementById('pc-reim-id');
-    if (pcReimId) pcReimId.value = getNextDocId(vrs, 'VR');
+    if (pcReimId) pcReimId.value = getNextDocId(vrs, 'VR', document.getElementById('pc-reim-date')?.value);
 }
 
 async function populateReimburseGLAccountDropdown() {
@@ -7570,7 +7583,7 @@ async function renderDPHistoryTable() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><strong>${dp.id}</strong></td>
-            <td>${dp.date}</td>
+            <td>${formatDateToDDMMYYYY(dp.date)}</td>
             <td>${dp.remarks}</td>
             <td style="text-align: right; font-family: monospace;">${formatMoney(dp.totalAmount)} ฿</td>
             <td>${dp.vrId ? `<span class="status-badge paid">${dp.vrId}</span>` : '<span class="status-badge sent">ค้างเบิกชดเชย</span>'}</td>
@@ -7633,7 +7646,7 @@ async function loadPendingDPsForReimbursement() {
                 <input type="checkbox" class="pc-reim-pending-chk" data-id="${dp.id}" ${isChecked ? 'checked' : ''}>
             </td>
             <td><strong>${dp.id}</strong></td>
-            <td>${dp.date}</td>
+            <td>${formatDateToDDMMYYYY(dp.date)}</td>
             <td>${dp.remarks}</td>
             <td style="text-align: right; font-family: monospace;">${formatMoney(dp.totalAmount)} ฿</td>
         `;
@@ -7806,7 +7819,7 @@ async function renderVRHistoryTable() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><strong>${vr.id}</strong></td>
-            <td>${vr.date}</td>
+            <td>${formatDateToDDMMYYYY(vr.date)}</td>
             <td>${vr.explanation}</td>
             <td style="text-align: right; font-family: monospace;">${formatMoney(vr.totalAmount)} ฿</td>
             <td><span style="font-family: monospace;">${vr.reimburseAccount}</span></td>
@@ -9061,7 +9074,7 @@ async function renderInventoryTransactions() {
             const totalVal = tx.total_cost || (tx.quantity * tx.unit_cost);
 
             tr.innerHTML = `
-                <td>${tx.date}</td>
+                <td>${formatDateToDDMMYYYY(tx.date)}</td>
                 <td><strong>${tx.doc_ref}</strong></td>
                 <td>${tx.product_code || ''}</td>
                 <td>
@@ -9414,7 +9427,7 @@ async function renderInventoryCounts() {
 
             tr.innerHTML = `
                 <td><strong>${c.ref_no}</strong></td>
-                <td>${c.date}</td>
+                <td>${formatDateToDDMMYYYY(c.date)}</td>
                 <td>${c.description || '-'}</td>
                 <td style="text-align: center;">${statusLabel}</td>
                 <td style="text-align: center;">
@@ -9622,7 +9635,7 @@ async function runInventoryCostingRepair() {
                     tx.unit_cost = unitCostVal;
                     tx.total_cost = qtyVal * unitCostVal;
                     
-                    consoleEl.textContent += `    + RECEIVE (${tx.date} / ${tx.doc_ref}): รับเข้า ${qtyVal} @ ${formatMoney(unitCostVal)} - สต็อกสะสม = ${runningQty}, ต้นทุนเฉลี่ยสะสม = ${formatMoney(currentAvgCost)}\n`;
+                    consoleEl.textContent += `    + RECEIVE (${formatDateToDDMMYYYY(tx.date)} / ${tx.doc_ref}): รับเข้า ${qtyVal} @ ${formatMoney(unitCostVal)} - สต็อกสะสม = ${runningQty}, ต้นทุนเฉลี่ยสะสม = ${formatMoney(currentAvgCost)}\n`;
                 } else if (tx.transaction_type === 'out' || tx.transaction_type === 'adjust_out') {
                     // Sale or issue decreases stock quantity at the current average cost
                     const oldAvg = currentAvgCost;
@@ -9633,7 +9646,7 @@ async function runInventoryCostingRepair() {
                     tx.unit_cost = oldAvg;
                     tx.total_cost = qtyVal * oldAvg;
 
-                    consoleEl.textContent += `    - ISSUE (${tx.date} / ${tx.doc_ref}): จ่ายออก ${qtyVal} @ ${formatMoney(oldAvg)} - สต็อกสะสม = ${runningQty}, ต้นทุนเฉลี่ยสะสม = ${formatMoney(currentAvgCost)}\n`;
+                    consoleEl.textContent += `    - ISSUE (${formatDateToDDMMYYYY(tx.date)} / ${tx.doc_ref}): จ่ายออก ${qtyVal} @ ${formatMoney(oldAvg)} - สต็อกสะสม = ${runningQty}, ต้นทุนเฉลี่ยสะสม = ${formatMoney(currentAvgCost)}\n`;
                 }
                 
                 updatedTxs.push(tx);
@@ -10565,3 +10578,23 @@ window.openQuickAddExpenseCatalog = async function() {
 };
 
 
+
+// Dynamically regenerate Petty Cash IDs when date changes (only for new docs)
+const elPcPayDate = document.getElementById('pc-pay-date');
+if (elPcPayDate) {
+    elPcPayDate.addEventListener('change', async () => {
+        if (!editingPcPayId) {
+            const dps = await db.getAll('pettyCashPayments');
+            document.getElementById('pc-pay-id').value = getNextDocId(dps, 'DP', elPcPayDate.value);
+        }
+    });
+}
+const elPcReimDate = document.getElementById('pc-reim-date');
+if (elPcReimDate) {
+    elPcReimDate.addEventListener('change', async () => {
+        if (!editingPcReimId) {
+            const vrs = await db.getAll('pettyCashReimbursements');
+            document.getElementById('pc-reim-id').value = getNextDocId(vrs, 'VR', elPcReimDate.value);
+        }
+    });
+}
