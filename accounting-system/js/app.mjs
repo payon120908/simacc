@@ -7188,13 +7188,14 @@ async function generateDocumentIds() {
         const allDocs = docs.filter(x => x.id && x.id.startsWith(targetPrefix));
         
         if (allDocs.length > 0) {
-            // รันต่อจากที่เพิ่มเข้าไปล่าสุด (ตัวสุดท้ายใน array) ไม่หาค่า max
+            // รันต่อจากที่เพิ่มเข้าไปล่าสุด (ตัวสุดท้ายใน array)
             const lastId = allDocs[allDocs.length - 1].id;
             if (lastId) {
-                return lastId.replace(/(\d+)(?!.*\d)/, (match) => {
-                    const nextVal = (parseInt(match, 10) + 1).toString();
-                    return nextVal.padStart(2, '0');
-                });
+                const seqStr = lastId.substring(targetPrefix.length);
+                const seq = parseInt(seqStr, 10);
+                if (!isNaN(seq)) {
+                    return targetPrefix + String(seq + 1).padStart(2, '0');
+                }
             }
         }
         
@@ -10088,6 +10089,7 @@ function resetDPForm() {
     if (form) form.reset();
     document.getElementById('pc-pay-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('pc-pay-id').value = '';
+    generateDocumentIds();
     
     pettyCashPayLines = [];
     const tbody = document.querySelector('#pc-pay-lines-table tbody');
@@ -10125,6 +10127,7 @@ function resetVRForm() {
     if (form) form.reset();
     document.getElementById('pc-reim-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('pc-reim-id').value = '';
+    generateDocumentIds();
     
     vrSelectedDps = [];
     loadPendingDPsForReimbursement();
