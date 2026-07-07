@@ -3841,10 +3841,74 @@ function bindUIActions() {
     });
 
     document.getElementById('btn-coa-print')?.addEventListener('click', () => {
-        const originalTitle = document.title;
-        document.title = 'Chart_of_Accounts_' + db.getActiveCompanyCode();
-        window.print();
-        document.title = originalTitle;
+        const catMap = { 1: '1 - สินทรัพย์', 2: '2 - หนี้สิน', 3: '3 - ส่วนของเจ้าของ', 4: '4 - รายได้', 5: '5 - ค่าใช้จ่าย' };
+        let tableHtml = `
+        <html><head><title>รายงานผังบัญชี (Chart of Accounts)</title>
+        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Sarabun', sans-serif; padding: 20px; font-size: 14px; color: #333; }
+            h2 { text-align: center; margin-bottom: 20px; font-weight: 600; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f8f9fa; font-weight: 600; text-align: center; }
+            .lvl-1 { font-weight: bold; background-color: #f1f5f9; }
+            .lvl-2 { padding-left: 20px !important; }
+            .lvl-3 { padding-left: 40px !important; }
+            @media print {
+                button { display: none; }
+                @page { margin: 1.5cm; }
+            }
+        </style>
+        </head><body>
+        <h2>รายงานผังบัญชี (Chart of Accounts)</h2>
+        <div style="text-align:right; margin-bottom: 10px;">
+            <button onclick="window.print()" style="padding: 6px 16px; cursor: pointer; background: #0d6efd; color: white; border: none; border-radius: 4px;">พิมพ์รายงาน (Print)</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%">รหัสบัญชี</th>
+                    <th style="width: 35%">ชื่อบัญชี (ภาษาไทย)</th>
+                    <th style="width: 25%">ชื่อบัญชี (ภาษาอังกฤษ)</th>
+                    <th style="width: 15%">หมวดหมู่</th>
+                    <th style="width: 10%">ระดับ</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        const sortedAccounts = [...accountsGlobalList].sort((a, b) => a.code.localeCompare(b.code));
+        
+        sortedAccounts.forEach(acc => {
+            let nameTh = acc.name_th || '';
+            let nameEn = acc.name_en || '';
+            let catText = catMap[acc.category] || acc.category;
+            let lvlClass = 'lvl-1';
+            if (acc.level == 2 || (acc.parent_code && !acc.level)) lvlClass = 'lvl-2';
+            if (acc.level >= 3) lvlClass = 'lvl-3';
+            
+            tableHtml += `
+                <tr class="${lvlClass}">
+                    <td>${acc.code}</td>
+                    <td class="${lvlClass}">${nameTh}</td>
+                    <td>${nameEn}</td>
+                    <td style="text-align:center;">${catText}</td>
+                    <td style="text-align:center;">${acc.level || 1}</td>
+                </tr>
+            `;
+        });
+
+        tableHtml += `</tbody></table></body></html>`;
+
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.open();
+            printWindow.document.write(tableHtml);
+            printWindow.document.close();
+            setTimeout(() => { printWindow.print(); }, 800);
+        } else {
+            alert("กรุณาอนุญาต Pop-ups สำหรับเว็บไซต์นี้เพื่อแสดงหน้าพิมพ์รายงานครับ");
+        }
     });
 
     document.getElementById('btn-coa-copy-to-company').addEventListener('click', async () => {
