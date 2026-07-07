@@ -3840,6 +3840,13 @@ function bindUIActions() {
         }
     });
 
+    document.getElementById('btn-coa-print')?.addEventListener('click', () => {
+        const originalTitle = document.title;
+        document.title = 'Chart_of_Accounts_' + db.getActiveCompanyCode();
+        window.print();
+        document.title = originalTitle;
+    });
+
     document.getElementById('btn-coa-copy-to-company').addEventListener('click', async () => {
         const activeCode = db.getActiveCompanyCode();
         try {
