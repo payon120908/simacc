@@ -723,7 +723,8 @@
                                 <div style="display: flex; gap: 12px;">
                                     <button class="btn btn-primary" id="tax-subtab-sales-btn">รายงานภาษีขาย (Sales VAT)</button>
                                     <button class="btn btn-secondary" id="tax-subtab-purchase-btn">รายงานภาษีซื้อ (Purchase VAT)</button>
-                                    <button class="btn btn-secondary" id="tax-subtab-wht-btn">รายงานหัก ณ ที่จ่าย (WHT)</button>
+                                    <button class="btn btn-secondary" id="tax-subtab-wht3-btn">รายงาน ภ.ง.ด.3</button>
+                                    <button class="btn btn-secondary" id="tax-subtab-wht53-btn">รายงาน ภ.ง.ด.53</button>
                                 </div>
                                 <button class="btn btn-secondary" id="btn-print-tax-report"><i class="fa-solid fa-print"></i> พิมพ์รายงานนี้ (Print A4)</button>
                             </div>
@@ -812,6 +813,7 @@
                             <div class="no-print" style="display: flex; gap: 8px;">
                                 <button class="btn btn-secondary btn-sm btn-print-report" data-target="view-tax-reports"><i class="fa-solid fa-print"></i> พิมพ์ PDF</button>
                                 <button class="btn btn-secondary btn-sm btn-export-csv" data-table="tax-wht-table" data-filename="withholding_tax_report"><i class="fa-solid fa-file-csv"></i> ส่งออก CSV</button>
+                                <button class="btn btn-secondary btn-sm btn-export-rdprep" id="btn-export-rdprep"><i class="fa-solid fa-file-export"></i> ส่งออก RDPrep (TXT)</button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -1970,7 +1972,7 @@
                                             </div>
                                             <div class="form-group" style="flex: 1;">
                                                 <label>จ่ายชดเชยจากบัญชีเงินสด/ธนาคาร (GL)</label>
-                                                <select class="form-control" id="pc-reim-account" required>
+                                                <select class="form-control" id="pc-reim-account">
                                                     <!-- Dynamic Cash/Bank Accounts -->
                                                 </select>
                                             </div>
@@ -2275,6 +2277,7 @@
                                     </p>
                                     <div style="display: flex; gap: 12px;">
                                         <button class="btn btn-secondary" id="btn-export-json"><i class="fa-solid fa-download"></i> ดาวน์โหลดสำรองข้อมูล (Export JSON)</button>
+                                        <button class="btn btn-primary" id="btn-export-all-db" style="background-color: var(--primary-dark);"><i class="fa-solid fa-server"></i> ดาวน์โหลดฐานข้อมูลทั้งหมด (Full DB)</button>
                                         
                                         <label for="import-file-input" class="btn btn-secondary" style="margin-bottom: 0; display: inline-flex; align-items: center; cursor: pointer;">
                                             <i class="fa-solid fa-upload"></i> นำเข้าข้อมูลสำรอง (Import JSON)

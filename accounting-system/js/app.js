@@ -3561,6 +3561,15 @@ function bindUIActions() {
                 exportTableToCSV(tableId, filename);
             }
         }
+
+
+        const rdprepBtn = e.target.closest('.btn-export-rdprep');
+        if (rdprepBtn) {
+            e.preventDefault();
+            const start = document.getElementById('tax-report-start').value;
+            const end = document.getElementById('tax-report-end').value;
+            exportRDPrep(start, end, currentTaxTab);
+        }
     });
 
     // 1. Dashboard click handlers
@@ -5199,6 +5208,17 @@ function bindUIActions() {
         }
     });
 
+    document.getElementById('btn-export-all-db')?.addEventListener('click', () => {
+        showToast('กำลังดาวน์โหลดฐานข้อมูลทั้งหมด (SQLite .db)...', 'success');
+        const url = '/api/admin/backup-db';
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.download = `accounting_full_backup_${new Date().toISOString().split('T')[0]}.db`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
     // 13. Backup JSON Import (Full System: all companies, all tables)
     document.getElementById('import-file-input').addEventListener('change', async (e) => {
         const file = e.target.files[0];
@@ -5400,7 +5420,8 @@ function bindUIActions() {
         currentTaxTab = 'sales';
         document.getElementById('tax-subtab-sales-btn').className = 'btn btn-primary';
         document.getElementById('tax-subtab-purchase-btn').className = 'btn btn-secondary';
-        document.getElementById('tax-subtab-wht-btn').className = 'btn btn-secondary';
+        document.getElementById('tax-subtab-wht3-btn').className = 'btn btn-secondary';
+        document.getElementById('tax-subtab-wht53-btn').className = 'btn btn-secondary';
         document.getElementById('card-tax-report-sales').style.display = 'block';
         document.getElementById('card-tax-report-purchase').style.display = 'none';
         document.getElementById('card-tax-report-wht').style.display = 'none';
@@ -5411,18 +5432,32 @@ function bindUIActions() {
         currentTaxTab = 'purchase';
         document.getElementById('tax-subtab-sales-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-purchase-btn').className = 'btn btn-primary';
-        document.getElementById('tax-subtab-wht-btn').className = 'btn btn-secondary';
+        document.getElementById('tax-subtab-wht3-btn').className = 'btn btn-secondary';
+        document.getElementById('tax-subtab-wht53-btn').className = 'btn btn-secondary';
         document.getElementById('card-tax-report-sales').style.display = 'none';
         document.getElementById('card-tax-report-purchase').style.display = 'block';
         document.getElementById('card-tax-report-wht').style.display = 'none';
         executeTaxReportQuery();
     });
 
-    document.getElementById('tax-subtab-wht-btn').addEventListener('click', () => {
-        currentTaxTab = 'wht';
+    document.getElementById('tax-subtab-wht3-btn').addEventListener('click', () => {
+        currentTaxTab = 'wht3';
         document.getElementById('tax-subtab-sales-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-purchase-btn').className = 'btn btn-secondary';
-        document.getElementById('tax-subtab-wht-btn').className = 'btn btn-primary';
+        document.getElementById('tax-subtab-wht3-btn').className = 'btn btn-primary';
+        document.getElementById('tax-subtab-wht53-btn').className = 'btn btn-secondary';
+        document.getElementById('card-tax-report-sales').style.display = 'none';
+        document.getElementById('card-tax-report-purchase').style.display = 'none';
+        document.getElementById('card-tax-report-wht').style.display = 'block';
+        executeTaxReportQuery();
+    });
+
+    document.getElementById('tax-subtab-wht53-btn').addEventListener('click', () => {
+        currentTaxTab = 'wht53';
+        document.getElementById('tax-subtab-sales-btn').className = 'btn btn-secondary';
+        document.getElementById('tax-subtab-purchase-btn').className = 'btn btn-secondary';
+        document.getElementById('tax-subtab-wht3-btn').className = 'btn btn-secondary';
+        document.getElementById('tax-subtab-wht53-btn').className = 'btn btn-primary';
         document.getElementById('card-tax-report-sales').style.display = 'none';
         document.getElementById('card-tax-report-purchase').style.display = 'none';
         document.getElementById('card-tax-report-wht').style.display = 'block';
@@ -5955,9 +5990,20 @@ async function executeTaxReportQuery() {
     } else if (currentTaxTab === 'purchase') {
         const data = await store.getPurchaseVatReport(start, end);
         renderPurchaseVatTable(data);
-    } else if (currentTaxTab === 'wht') {
+    } else if (currentTaxTab === 'wht3') {
         const data = await store.getWithholdingTaxReport(start, end);
-        renderWhtTable(data);
+        const filteredData = data.filter(d => d.pndType === '3');
+        document.getElementById('tax-report-wht-title').innerHTML = '<i class="fa-solid fa-hand-holding-dollar"></i> รายงานภาษีเงินได้หัก ณ ที่จ่าย (ภ.ง.ด.3)';
+        const btnExport = document.querySelector('.btn-export-csv[data-table="tax-wht-table"]');
+        if (btnExport) btnExport.setAttribute('data-filename', 'wht3_report');
+        renderWhtTable(filteredData);
+    } else if (currentTaxTab === 'wht53') {
+        const data = await store.getWithholdingTaxReport(start, end);
+        const filteredData = data.filter(d => d.pndType === '53');
+        document.getElementById('tax-report-wht-title').innerHTML = '<i class="fa-solid fa-hand-holding-dollar"></i> รายงานภาษีเงินได้หัก ณ ที่จ่าย (ภ.ง.ด.53)';
+        const btnExport = document.querySelector('.btn-export-csv[data-table="tax-wht-table"]');
+        if (btnExport) btnExport.setAttribute('data-filename', 'wht53_report');
+        renderWhtTable(filteredData);
     }
 }
 
@@ -7313,7 +7359,7 @@ async function renderDPLinesTable() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
-                <select class="form-control dp-line-account" data-index="${index}" required style="font-size: 13px;">
+                <select class="form-control dp-line-account" data-index="${index}" style="font-size: 13px;">
                     <option value="">-- เลือกรหัสบัญชี --</option>
                     ${postingAccounts.map(a => `<option value="${a.code}" ${a.code === line.accountCode ? 'selected' : ''}>${a.code} - ${a.name}</option>`).join('')}
                 </select>
@@ -7515,7 +7561,13 @@ async function handleDPFormSubmit(e) {
         return;
     }
     
-    if (!editingDPId) {
+    if (editingDPId && editingDPId !== dpId) {
+        const existing = await db.getByKey('pettyCashPayments', dpId);
+        if (existing) {
+            alert(`รหัสใบจ่ายเงินสดย่อย ${dpId} นี้มีอยู่ในระบบแล้ว! โปรดใช้รหัสอื่น`);
+            return;
+        }
+    } else if (!editingDPId) {
         const existing = await db.getByKey('pettyCashPayments', dpId);
         if (existing) {
             alert(`รหัสใบจ่ายเงินสดย่อย ${dpId} นี้มีอยู่ในระบบแล้ว! โปรดใช้รหัสอื่นหรือคลิกล้างค่าใหม่`);
@@ -7558,6 +7610,9 @@ async function handleDPFormSubmit(e) {
     };
     
     try {
+        if (editingDPId && editingDPId !== dpId) {
+            await db.deleteItem('pettyCashPayments', editingDPId);
+        }
         await db.putItem('pettyCashPayments', dpObj);
         showToast(`บันทึกใบจ่ายเงินสดย่อย ${dpId} เรียบร้อยแล้ว`);
         resetDPForm();
@@ -7733,7 +7788,13 @@ async function handleVRFormSubmit(e) {
         return;
     }
     
-    if (!editingVRId) {
+    if (editingVRId && editingVRId !== vrId) {
+        const existing = await db.getByKey('pettyCashReimbursements', vrId);
+        if (existing) {
+            alert(`รหัสใบเบิกชดเชย ${vrId} นี้มีอยู่ในระบบแล้ว! โปรดใช้รหัสอื่น`);
+            return;
+        }
+    } else if (!editingVRId) {
         const existing = await db.getByKey('pettyCashReimbursements', vrId);
         if (existing) {
             alert(`รหัสใบเบิกชดเชย ${vrId} นี้มีอยู่ในระบบแล้ว! โปรดใช้รหัสอื่นหรือคลิกล้างค่าใหม่`);
@@ -7787,6 +7848,9 @@ async function handleVRFormSubmit(e) {
     };
     
     try {
+        if (editingVRId && editingVRId !== vrId) {
+            await db.deleteItem('pettyCashReimbursements', editingVRId);
+        }
         const newJournalId = await store.postPettyCashReimbursementToJournal(vrObj);
         
         for (const dp of vrSelectedDps) {
@@ -10599,3 +10663,123 @@ if (elPcReimDate) {
         }
     });
 }
+
+// =========================================================================
+// RDPrep EXPORT
+// =========================================================================
+window.exportRDPrep = async function(start, end, pndTypeStr) {
+    if (pndTypeStr !== 'wht3' && pndTypeStr !== 'wht53') {
+        alert('กรุณาเลือกรายงาน ภ.ง.ด.3 หรือ ภ.ง.ด.53 ก่อนทำการส่งออก RDPrep');
+        return;
+    }
+
+    const typeFilter = pndTypeStr === 'wht3' ? '3' : '53';
+    const data = await store.getWithholdingTaxReport(start, end);
+    const filteredData = data.filter(d => d.pndType === typeFilter);
+
+    if (filteredData.length === 0) {
+        alert('ไม่พบข้อมูลสำหรับส่งออก');
+        return;
+    }
+
+    let txtContent = '';
+
+    filteredData.forEach(row => {
+        const taxId = (row.taxId && row.taxId !== '-') ? row.taxId.replace(/\D/g, '') : '';
+        const rawName = (row.partyName || '').trim();
+        
+        let title = '';
+        let firstName = '';
+        let lastName = '';
+
+        if (typeFilter === '3') {
+            // For individuals
+            const prefixes = ['นางสาว', 'น.ส.', 'นาง', 'ด.ญ.', 'นาย', 'ด.ช.'];
+            let foundPrefix = false;
+            for (const p of prefixes) {
+                if (rawName.startsWith(p)) {
+                    title = p;
+                    let rest = rawName.substring(p.length).trim();
+                    const parts = rest.split(/\s+/);
+                    firstName = parts[0] || '';
+                    lastName = parts.slice(1).join(' ') || '';
+                    foundPrefix = true;
+                    break;
+                }
+            }
+            if (!foundPrefix) {
+                const parts = rawName.split(/\s+/);
+                firstName = parts[0] || '';
+                lastName = parts.slice(1).join(' ') || '';
+            }
+        } else {
+            // For corporations
+            if (rawName.includes('บริษัท') && rawName.includes('จำกัด')) {
+                title = 'บริษัท';
+                let mid = rawName.replace('บริษัท', '').replace('จำกัด', '').trim();
+                if (rawName.includes('มหาชน')) {
+                    mid = mid.replace('มหาชน', '').trim();
+                    lastName = 'จำกัด (มหาชน)';
+                } else {
+                    lastName = 'จำกัด';
+                }
+                firstName = mid;
+            } else if (rawName.includes('ห้างหุ้นส่วนจำกัด') || rawName.startsWith('หจก.')) {
+                title = rawName.startsWith('หจก.') ? 'หจก.' : 'ห้างหุ้นส่วนจำกัด';
+                firstName = rawName.replace(title, '').trim();
+            } else if (rawName.includes('ห้างหุ้นส่วนสามัญ')) {
+                title = 'ห้างหุ้นส่วนสามัญ';
+                firstName = rawName.replace(title, '').trim();
+            } else {
+                firstName = rawName;
+            }
+        }
+
+        // Date format: DD/MM/YYYY
+        let dateStr = '';
+        if (row.date) {
+            const d = new Date(row.date);
+            if (!isNaN(d)) {
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                let year = d.getFullYear(); 
+                dateStr = `${day}/${month}/${year}`;
+            }
+        }
+
+        const rate = parseFloat(row.whtRate) || 0;
+        const base = parseFloat(row.baseAmount) || 0;
+        const tax = parseFloat(row.whtAmount) || 0;
+        const condition = '1';
+
+        // standard 14 fields for RDPrep
+        const fields = [
+            '', // 0: No.
+            '', // 1: Blank for individual TaxID if citizen ID used
+            taxId, // 2: CitizenID or TaxID (13 digits)
+            '', // 3: Branch
+            title, // 4: Prefix
+            firstName, // 5: First name
+            lastName, // 6: Last name
+            '', // 7: Branch Name/Address
+            dateStr, // 8: Date
+            row.description || '', // 9: Description
+            rate.toString(), // 10: Rate
+            base.toFixed(2), // 11: Base
+            tax.toFixed(2), // 12: Tax
+            condition // 13: Condition
+        ];
+
+        txtContent += fields.join('|') + '\r\n';
+    });
+
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${pndTypeStr}_rdprep_${start}_${end}.txt`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};

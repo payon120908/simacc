@@ -5,10 +5,10 @@ import zipfile
 print("Zipping project...")
 zipf = zipfile.ZipFile('deploy.zip', 'w', zipfile.ZIP_DEFLATED)
 for root, dirs, files in os.walk('.'):
-    if '__pycache__' in root or '.git' in root or '.gemini' in root:
+    if '__pycache__' in root or '.git' in root or '.gemini' in root or 'database' in root:
         continue
     for file in files:
-        if file == 'deploy.zip' or file.endswith('.pyc'):
+        if file == 'deploy.zip' or file.endswith('.pyc') or file.endswith('.db') or file.endswith('.sqlite'):
             continue
         filepath = os.path.join(root, file)
         arcname = os.path.relpath(filepath, '.')
@@ -28,7 +28,7 @@ sftp.close()
 commands = [
     "apt-get update",
     "apt-get install -y python3 python3-pip unzip curl",
-    "rm -rf /root/accounting-system",
+    "find /root/accounting-system -maxdepth 1 ! -name 'database' ! -name 'accounting-system' -exec rm -rf {} +",
     "unzip -q -o /root/deploy.zip -d /root/accounting-system",
     "chmod +x /root/accounting-system/server.py",
     # Create systemd service

@@ -53,6 +53,18 @@ def get_db():
             except Exception as e:
                 print(f"Error copying template database: {e}")
                 
+    # Automatic daily backup
+    if os.path.exists(db_path):
+        import datetime, shutil
+        today_str = datetime.datetime.now().strftime('%Y%m%d')
+        backup_path = os.path.join(db_dir, f'accounting_backup_{today_str}.db')
+        if not os.path.exists(backup_path):
+            try:
+                shutil.copy2(db_path, backup_path)
+                print(f"Created daily backup: {backup_path}")
+            except Exception as e:
+                print(f"Error creating backup: {e}")
+                
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
@@ -803,6 +815,26 @@ class APIRouter:
             return True
 
         try:
+            # Admin Full Backup
+            if len(path_parts) == 3 and path_parts[0] == 'api' and path_parts[1] == 'admin' and path_parts[2] == 'backup-db':
+                if method == 'GET':
+                    db_dir = os.path.join(os.path.dirname(__file__), 'database')
+                    db_path = os.path.join(db_dir, 'accounting.db')
+                    if os.path.exists(db_path):
+                        with open(db_path, 'rb') as f:
+                            data = f.read()
+                        handler.send_response(200)
+                        handler.send_header('Content-Type', 'application/octet-stream')
+                        handler.send_header('Content-Disposition', 'attachment; filename="accounting_full_backup.db"')
+                        handler.send_header('Content-Length', str(len(data)))
+                        handler.send_header('Access-Control-Allow-Origin', '*')
+                        handler.end_headers()
+                        handler.wfile.write(data)
+                        return True
+                    else:
+                        send_error("Database file not found", 404)
+                        return True
+
             # Auth Login
             if len(path_parts) == 3 and path_parts[0] == 'api' and path_parts[1] == 'auth' and path_parts[2] == 'login':
                 if method == 'POST':
