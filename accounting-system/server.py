@@ -1796,6 +1796,7 @@ class APIRouter:
                     address_direct = data.get('address', '')
                     payments_str = json.dumps(data.get('payments', []))
                     journal_id_direct = data.get('journalId', data.get('journal_id', ''))
+                    doc_no = data.get('docNo', data.get('doc_no', ''))
                     
                     conn = get_db()
                     try:
