@@ -1080,10 +1080,13 @@
                                                  <input type="text" class="form-control" id="bill-description" placeholder="คำอธิบาย/หมายเหตุของบิลนี้">
                                              </div>
                                             <div class="form-group">
+                                                <label>เลขที่เอกสาร</label>
+                                                <input type="text" class="form-control" id="bill-doc-no" readonly placeholder="สร้างอัตโนมัติ" style="background-color: #e2e8f0; font-weight: bold; color: #475569;">
+                                            </div>
+                                            <div class="form-group">
                                                 <label>วันที่เอกสาร / ใบแจ้งหนี้</label>
                                                 <input type="date" class="form-control" required id="bill-date">
                                             </div>
-
                                         </div>
 
                                         <div style="margin: 16px 0; border-top: 1px solid var(--border-color); padding-top: 16px;">
@@ -3811,7 +3814,7 @@
 
     <!-- Select2 Initialization -->
     <!-- App Initialization scripts -->
-    <script type="module" src="js/app.js?v=54"></script>
+    <script type="module" src="js/app.js?v=56"></script>
     <!-- jQuery & Select2 for Searchable Dropdowns -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
