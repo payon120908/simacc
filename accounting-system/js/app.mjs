@@ -2044,11 +2044,16 @@ async function renderInvoicesView() {
     if (billDateEl) {
         billDateEl.value = today;
         // Listen to changes on bill-date to update payment dates
-        billDateEl.addEventListener('change', (e) => {
+        billDateEl.addEventListener('change', async (e) => {
             const newDate = e.target.value;
             document.querySelectorAll('.bill-payment-date').forEach(el => {
                 el.value = newDate;
             });
+            if (!editingBillId && typeof window.generateBillId === 'function') {
+                const newId = await window.generateBillId(newDate);
+                const docNoEl = document.getElementById('bill-doc-no');
+                if (docNoEl) docNoEl.value = newId;
+            }
         });
     }
 
@@ -2525,10 +2530,10 @@ async function addBillItemRow(expenseCode = '', qty = 1, price = 0, hasVat = fal
     tr.className = 'bill-item-row';
     
     // Build select options
-    let selectHtml = `<select class="form-control bill-item-code" required style="width:100%;">`;
+    let selectHtml = `<select class="form-control bill-item-code" style="width:100%;">`;
     selectHtml += `<option value="">-- เลือกรหัสค่าใช้จ่าย --</option>`;
     templates.forEach(t => {
-        selectHtml += `<option value="${t.code}" ${t.code === expenseCode ? 'selected' : ''}>${t.code} - ${t.name}</option>`;
+        selectHtml += `<option value="${t.code}" ${t.code === expenseCode ? 'selected' : ''}>${t.code}</option>`;
     });
     selectHtml += `</select>`;
 
@@ -2556,6 +2561,7 @@ async function addBillItemRow(expenseCode = '', qty = 1, price = 0, hasVat = fal
     
     // attach listeners
     const codeSelect = tr.querySelector('.bill-item-code');
+    const descInput = tr.querySelector('.bill-item-desc');
     const qtyInput = tr.querySelector('.bill-item-qty');
     const priceInput = tr.querySelector('.bill-item-price');
     const vatInput = tr.querySelector('.bill-item-vat');
@@ -2565,6 +2571,9 @@ async function addBillItemRow(expenseCode = '', qty = 1, price = 0, hasVat = fal
         const selectedCode = e.target.value;
         const catalogItem = templates.find(t => t.code === selectedCode);
         if (catalogItem) {
+            if (catalogItem.name) {
+                descInput.value = catalogItem.name;
+            }
             if (catalogItem.amount) {
                 priceInput.value = catalogItem.amount;
             }
@@ -3478,7 +3487,7 @@ async function addJournalFormRow() {
     tr.id = `jv-row-${index}`;
     tr.innerHTML = `
         <td>
-            <select class="form-control jv-line-account" required>
+            <select class="form-control jv-line-account">
                 ${selectOptions}
             </select>
         </td>
@@ -3836,7 +3845,10 @@ function bindUIActions() {
     });
 
     document.getElementById('btn-coa-print')?.addEventListener('click', () => {
-        const catMap = { 1: '1 - สินทรัพย์', 2: '2 - หนี้สิน', 3: '3 - ส่วนของเจ้าของ', 4: '4 - รายได้', 5: '5 - ค่าใช้จ่าย' };
+        const catMap = { 
+            'asset': '1 - สินทรัพย์', 'liability': '2 - หนี้สิน', 'equity': '3 - ส่วนของเจ้าของ', 'revenue': '4 - รายได้', 'expense': '5 - ค่าใช้จ่าย',
+            '1': '1 - สินทรัพย์', '2': '2 - หนี้สิน', '3': '3 - ส่วนของเจ้าของ', '4': '4 - รายได้', '5': '5 - ค่าใช้จ่าย' 
+        };
         let tableHtml = `
         <html><head><title>รายงานผังบัญชี (Chart of Accounts)</title>
         <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -3875,11 +3887,12 @@ function bindUIActions() {
         const sortedAccounts = [...accountsGlobalList].sort((a, b) => a.code.localeCompare(b.code));
         
         sortedAccounts.forEach(acc => {
-            let nameTh = acc.name_th || '';
-            let nameEn = acc.name_en || '';
-            let catText = catMap[acc.category] || acc.category;
+            let nameTh = acc.name || acc.name_th || acc.accountName || acc.account_name || '';
+            let nameEn = acc.nameEn || acc.name_en || acc.accountNameEn || acc.account_name_en || '';
+            let cat = (acc.category || '').toString().trim().toLowerCase();
+            let catText = catMap[cat] || acc.category;
             let lvlClass = 'lvl-1';
-            if (acc.level == 2 || (acc.parent_code && !acc.level)) lvlClass = 'lvl-2';
+            if (acc.level == 2 || (acc.parentCode && !acc.level) || (acc.parent_code && !acc.level)) lvlClass = 'lvl-2';
             if (acc.level >= 3) lvlClass = 'lvl-3';
             
             tableHtml += `
@@ -4650,6 +4663,21 @@ function bindUIActions() {
         await renderInvoicesView();
     });
 
+    // Global generateBillId function
+    window.generateBillId = async (dateStr) => {
+        const yy = dateStr.substring(2, 4);
+        const mm = dateStr.substring(5, 7);
+        const dd = dateStr.substring(8, 10);
+        const prefix = 'EX' + yy + mm + '-' + dd;
+        const allBills = await db.getAll('bills');
+        const billsOnDate = allBills.filter(b => b.id && b.id.startsWith(prefix));
+        const maxSeq = billsOnDate.reduce((max, b) => {
+            const seq = parseInt(b.id.substring(prefix.length));
+            return isNaN(seq) ? max : Math.max(max, seq);
+        }, 0);
+        return prefix + String(maxSeq + 1).padStart(2, '0');
+    };
+
     // Bill Form Submission
     document.getElementById('bill-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -4657,6 +4685,7 @@ function bindUIActions() {
         const vendorName = document.getElementById('bill-vendor-name').value;
         const taxId = document.getElementById('bill-tax-id').value;
         const address = (document.getElementById('bill-address') || {}).value || '';
+        const docNo = (document.getElementById('bill-doc-no') || {}).value || '';
         const date = document.getElementById('bill-date').value;
         const paymentDate = date; // fallback paymentDate is now just the bill date
         const templateCodeEl = document.getElementById('bill-expense-account');
@@ -4741,20 +4770,6 @@ function bindUIActions() {
         let journalId = '';
         let oldBillIdToDelete = null;
 
-        const generateBillId = async (dateStr) => {
-            const yy = dateStr.substring(2, 4);
-            const mm = dateStr.substring(5, 7);
-            const dd = dateStr.substring(8, 10);
-            const prefix = yy + mm + dd + '-';
-            const allBills = await db.getAll('bills');
-            const billsOnDate = allBills.filter(b => b.id && b.id.startsWith(prefix));
-            const maxSeq = billsOnDate.reduce((max, b) => {
-                const seq = parseInt(b.id.substring(prefix.length));
-                return isNaN(seq) ? max : Math.max(max, seq);
-            }, 0);
-            return prefix + String(maxSeq + 1).padStart(2, '0');
-        };
-
         if (billId) {
             const oldBill = await db.getByKey('bills', billId);
             if (oldBill) {
@@ -4764,20 +4779,21 @@ function bindUIActions() {
             const yy = date.substring(2, 4);
             const mm = date.substring(5, 7);
             const dd = date.substring(8, 10);
-            const expectedPrefix = yy + mm + dd + '-';
+            const expectedPrefix = 'EX' + yy + mm + '-' + dd;
             
             if (!billId.startsWith(expectedPrefix)) {
                 oldBillIdToDelete = billId;
-                billId = await generateBillId(date);
+                billId = await window.generateBillId(date);
             }
         } else {
-            // Generate bill ID in format YYMMDD-NN (sequential per day)
-            billId = await generateBillId(date);
+            // Generate bill ID
+            billId = await window.generateBillId(date);
         }
 
         const bill = {
             id: billId,
             date,
+            docNo,
             paymentDate,
             vendorName,
             taxId,
@@ -6592,7 +6608,7 @@ async function addARPaymentRow(methodCode = '', ref = '', bank = '', amount = 0)
     
     tr.innerHTML = `
         <td>
-            <select class="form-control ar-other-pay-method" required style="width: 100%;">
+            <select class="form-control ar-other-pay-method" style="width: 100%;">
                 ${optionsHtml}
             </select>
         </td>
@@ -6636,7 +6652,7 @@ async function addAPPaymentRow(methodCode = '', ref = '', bank = '', amount = 0)
     
     tr.innerHTML = `
         <td>
-            <select class="form-control ap-other-pay-method" required style="width: 100%;">
+            <select class="form-control ap-other-pay-method" style="width: 100%;">
                 ${optionsHtml}
             </select>
         </td>
@@ -7353,7 +7369,7 @@ async function renderDPLinesTable() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
-                <select class="form-control dp-line-account" data-index="${index}" required style="font-size: 13px;">
+                <select class="form-control dp-line-account" data-index="${index}" style="font-size: 13px;">
                     <option value="">-- เลือกรหัสบัญชี --</option>
                     ${postingAccounts.map(a => `<option value="${a.code}" ${a.code === line.accountCode ? 'selected' : ''}>${a.code} - ${a.name}</option>`).join('')}
                 </select>
@@ -8897,7 +8913,7 @@ async function addSetComponentRow(selectedId = '', qty = 1) {
 
     tr.innerHTML = `
         <td>
-            <select class="form-control set-item-product" required>
+            <select class="form-control set-item-product">
                 ${selectOptions}
             </select>
         </td>
@@ -9950,6 +9966,8 @@ async function startEditBill(id) {
     const addrEl = document.getElementById('bill-address');
     if (addrEl) addrEl.value = bill.address || '';
     document.getElementById('bill-date').value = bill.date;
+    const docNoEl = document.getElementById('bill-doc-no');
+    if (docNoEl) docNoEl.value = bill.id || ''; // Display the EX document number
     
     const billDescEl = document.getElementById('bill-description');
     if (billDescEl && bill.items && bill.items.length > 0) {
@@ -10041,6 +10059,11 @@ async function resetBillForm() {
     if (form) form.reset();
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('bill-date').value = today;
+    if (typeof window.generateBillId === 'function') {
+        const newId = await window.generateBillId(today);
+        const docNoEl = document.getElementById('bill-doc-no');
+        if (docNoEl) docNoEl.value = newId;
+    }
     
     const pGroup = document.getElementById('bill-payments-section');
     if (pGroup) pGroup.style.display = 'block';
