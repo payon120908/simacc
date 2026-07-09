@@ -463,7 +463,7 @@ export async function postBillToJournal(bill) {
     const resolvedAP = findValidAccount(accounts, mappings.ap, '2', '2111-00');
     const resolvedVAT = findValidAccount(accounts, mappings.purchase_vat, '1', '1151-00');
     const descText = bill.items && bill.items.length > 0 ? bill.items.map(i => i.description).join(' ') : '';
-    const resolvedWHT = resolveWhtPayableAccount(accounts, mappings, bill.vendorName, bill.taxId, descText);
+    const resolvedWHT = resolveWhtPayableAccount(accounts, mappings, bill.vendorName, bill.taxId, descText, bill.whtType);
     const resolvedCash = findValidAccount(accounts, mappings.cash, '1', '1111-00');
     const resolvedOtherExpense = findValidAccount(accounts, mappings.other_expense, '5', '5250-00');
     
@@ -582,7 +582,15 @@ export function isWhtPayableAccount(accountCode, mappings) {
            accountCode === mappings.wht_payable_pnd53;
 }
 
-export function resolveWhtPayableAccount(accounts, mappings, contactName, taxId, descriptionText) {
+export function resolveWhtPayableAccount(accounts, mappings, contactName, taxId, descriptionText, whtType = null) {
+    if (whtType === '1') {
+        return findValidAccount(accounts, mappings.wht_payable_pnd1 || mappings.wht_payable, '2', '2110-01');
+    } else if (whtType === '3') {
+        return findValidAccount(accounts, mappings.wht_payable_pnd3 || mappings.wht_payable, '2', '2110-02');
+    } else if (whtType === '53') {
+        return findValidAccount(accounts, mappings.wht_payable_pnd53 || mappings.wht_payable, '2', '2110-03');
+    }
+
     let whtMapping = mappings.wht_payable_pnd53 || mappings.wht_payable;
     let whtFallback = '2110-03';
     
@@ -1137,6 +1145,13 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                 });
             }
 
+            let pndType = 'other';
+            if (entry.lines.some(l => l.accountCode === mappings.wht_payable_pnd3 || l.accountCode === '2110-02')) {
+                pndType = '3';
+            } else if (entry.lines.some(l => l.accountCode === mappings.wht_payable_pnd53 || l.accountCode === '2110-03' || l.accountCode === mappings.wht_payable)) {
+                pndType = '53';
+            }
+            
             report.push({
                 date: entry.date,
                 reference: entry.reference,
@@ -1146,7 +1161,8 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                 whtRate: rate,
                 baseAmount,
                 whtAmount: entry.whtAmount,
-                isPayable
+                isPayable,
+                pndType
             });
         }
     });
@@ -1160,6 +1176,7 @@ export async function getWithholdingTaxReport(startDate, endDate) {
 
             let partyName = dp.remarks || 'ทั่วไป';
             let taxId = '-';
+            let pndType = '53'; // Default to PND.53
 
             if (dp.contactCode) {
                 let contactId = parseInt(String(dp.contactCode).replace(/^[CS]-/, ''));
@@ -1167,6 +1184,19 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                 if (contact) {
                     partyName = contact.name;
                     taxId = contact.taxId || '-';
+                    
+                    const name = partyName || '';
+                    const isIndividual = name.startsWith('นาย') || 
+                                         name.startsWith('นาง') || 
+                                         name.startsWith('น.ส.') ||
+                                         name.startsWith('ด.ช.') ||
+                                         name.startsWith('ด.ญ.') ||
+                                         (name && !name.includes('บริษัท') && !name.includes('จำกัด') && !name.includes('หจก.') && !name.includes('ห้างหุ้นส่วน') && !name.includes('บมจ.'));
+                                         
+                    const isCitizenId = taxId && taxId.length === 13 && /^[1-8]/.test(taxId);
+                    if (isCitizenId || (isIndividual && !taxId)) {
+                        pndType = '3';
+                    }
                 }
             }
 
@@ -1188,7 +1218,8 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                             whtRate: lineRate,
                             baseAmount: Math.round(lineBase * 100) / 100,
                             whtAmount: lineWhtAmount,
-                            isPayable: true
+                            isPayable: true,
+                            pndType
                         });
                     }
                 });
@@ -1207,7 +1238,8 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                     whtRate: rate,
                     baseAmount: Math.round(baseAmount * 100) / 100,
                     whtAmount: dp.whtAmount,
-                    isPayable: true
+                    isPayable: true,
+                    pndType
                 });
             }
         }

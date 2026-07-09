@@ -4739,11 +4739,26 @@ function bindUIActions() {
         return prefix + String(maxSeq + 1).padStart(2, '0');
     };
 
+    // Global invalid event listener to catch hidden required fields
+    document.addEventListener('invalid', (function(){
+        return function(e) {
+            e.preventDefault();
+            const fieldName = e.target.placeholder || e.target.id || e.target.className;
+            showToast('กรุณากรอกข้อมูลให้ครบถ้วน: ' + fieldName, 'error');
+            console.error('Invalid element prevented form submission:', e.target);
+            // If it is hidden by select2, try to open it or highlight it
+            const $el = $(e.target);
+            if ($el.hasClass('select2-hidden-accessible')) {
+                $el.siblings('.select2-container').css('border', '1px solid red');
+            }
+        };
+    })(), true);
+
     // Bill Form Submission
     document.getElementById('bill-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        const vendorName = document.getElementById('bill-vendor-name').value;
+        try {
+            const vendorName = document.getElementById('bill-vendor-name').value;
         const taxId = document.getElementById('bill-tax-id').value;
         const address = (document.getElementById('bill-address') || {}).value || '';
         const docNo = (document.getElementById('bill-doc-no') || {}).value || '';
@@ -4892,6 +4907,10 @@ function bindUIActions() {
         alert(`บันทึกบิลค่าใช้จ่าย ${billId} และลงรายวันทั่วไปเรียบร้อยแล้ว`);
         showToast(`บันทึกบิลค่าใช้จ่าย ${billId} และลงรายวันทั่วไปเรียบร้อยแล้ว`);
         await renderInvoicesView();
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการบันทึกค่าใช้จ่าย (JS Error): ' + err.message + '\n' + err.stack);
+            console.error(err);
+        }
     });
 
 

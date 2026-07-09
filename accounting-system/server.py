@@ -324,6 +324,7 @@ def initialize_database():
         tax_withheld REAL NOT NULL DEFAULT 0.00,
         net_payable REAL NOT NULL DEFAULT 0.00,
         wht_type TEXT DEFAULT 'none',
+        doc_no TEXT,
         items TEXT NOT NULL,
         last_updated INTEGER NOT NULL,
         payment_date TEXT,
@@ -348,6 +349,7 @@ def initialize_database():
         ("payments", "TEXT"),
         ("journal_id", "TEXT"),
         ("wht_type", "TEXT DEFAULT 'none'"),
+        ("doc_no", "TEXT"),
 ]:
         try:
             cursor.execute(f"ALTER TABLE bills ADD COLUMN {col_def[0]} {col_def[1]}")
@@ -1834,15 +1836,16 @@ class APIRouter:
                                 INSERT INTO bills (
                                     id, company_code, date, supplier_id, due_date, status, 
                                     subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items, last_updated,
-                                    payment_date, payment_account, vendor_name, wht_rate, tax_id, address, payments, journal_id, wht_type
-                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    payment_date, payment_account, vendor_name, wht_rate, tax_id, address, payments, journal_id, wht_type, doc_no
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                                 ON CONFLICT(company_code, id) DO UPDATE SET 
                                     date=excluded.date, supplier_id=excluded.supplier_id, due_date=excluded.due_date, status=excluded.status, 
                                     subtotal=excluded.subtotal, vat_rate=excluded.vat_rate, vat_amount=excluded.vat_amount, total=excluded.total, 
                                     tax_withheld=excluded.tax_withheld, net_payable=excluded.net_payable, items=excluded.items, last_updated=excluded.last_updated,
                                     payment_date=excluded.payment_date, payment_account=excluded.payment_account, vendor_name=excluded.vendor_name, wht_rate=excluded.wht_rate,
-                                    tax_id=excluded.tax_id, address=excluded.address, payments=excluded.payments, journal_id=excluded.journal_id, wht_type=excluded.wht_type
-                            """, (doc_id, company_code, date, party_id, date, status, subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items_str, last_updated, payment_date, payment_account, vendor_name_direct, wht_rate, tax_id_direct, address_direct, payments_str, journal_id_direct, wht_type))
+                                    tax_id=excluded.tax_id, address=excluded.address, payments=excluded.payments, journal_id=excluded.journal_id, wht_type=excluded.wht_type,
+                                    doc_no=excluded.doc_no
+                            """, (doc_id, company_code, date, party_id, date, status, subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items_str, last_updated, payment_date, payment_account, vendor_name_direct, wht_rate, tax_id_direct, address_direct, payments_str, journal_id_direct, wht_type, doc_no))
                         else:
                             # UPSERT for invoices with extended fields and payments
                             conn.execute("""
@@ -2401,9 +2404,9 @@ class APIRouter:
                             new_supp_id = supp_id_map.get(old_supp_id, old_supp_id)
                             items_str = json.dumps(bill.get('items', []))
                             cursor.execute("""
-                                INSERT INTO bills (id, company_code, date, supplier_id, due_date, status, subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items, last_updated)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """, (bill['id'], company_code, bill['date'], new_supp_id, bill.get('due_date', bill['date']), bill['status'], bill.get('subtotal', 0.0), bill.get('vat_rate', 0.0), bill.get('vat_amount', 0.0), bill.get('total', 0.0), bill.get('tax_withheld', 0.0), bill.get('net_payable', 0.0), items_str, bill.get('last_updated', int(time.time()*1000))))
+                                INSERT INTO bills (id, company_code, date, supplier_id, due_date, status, subtotal, vat_rate, vat_amount, total, tax_withheld, net_payable, items, last_updated, doc_no)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (bill['id'], company_code, bill['date'], new_supp_id, bill.get('due_date', bill['date']), bill['status'], bill.get('subtotal', 0.0), bill.get('vat_rate', 0.0), bill.get('vat_amount', 0.0), bill.get('total', 0.0), bill.get('tax_withheld', 0.0), bill.get('net_payable', 0.0), items_str, bill.get('last_updated', int(time.time()*1000)), bill.get('doc_no', bill.get('docNo', ''))))
 
                     # arReceipts
                     cursor.execute("DELETE FROM ar_receipts WHERE company_code=?", (company_code,))
