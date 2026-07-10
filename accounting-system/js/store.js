@@ -1117,6 +1117,11 @@ export async function getPurchaseVatReport(startDate, endDate) {
 
 export async function getWithholdingTaxReport(startDate, endDate) {
     const mappings = await getAccountMappings();
+    const accounts = await getAccounts();
+    const getAccountName = (code) => {
+        const acc = accounts.find(a => a.code === code);
+        return acc ? acc.name : code;
+    };
     const entries = await db.getJournalEntriesRange(startDate, endDate);
     const report = [];
 
@@ -1152,11 +1157,11 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                 pndType = '53';
             }
             
-            // Extract expense code
-            let expenseCode = '';
+            // Extract expense name
+            let expenseName = '';
             if (rate > 0) {
                 const expenseLine = entry.lines.find(l => l.debit > 0 && String(l.accountCode).startsWith('5'));
-                if (expenseLine) expenseCode = expenseLine.accountCode;
+                if (expenseLine) expenseName = getAccountName(expenseLine.accountCode);
             } else {
                 const excludedCodes = [
                     mappings.cash, '1111-00', '1112-00',
@@ -1166,7 +1171,7 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                     mappings.wht_payable, mappings.wht_payable_pnd1, mappings.wht_payable_pnd3, mappings.wht_payable_pnd53, '2161-00', '2110-01', '2110-02', '2110-03'
                 ];
                 const expenseLine = entry.lines.find(l => !excludedCodes.includes(l.accountCode) && l.debit > 0);
-                if (expenseLine) expenseCode = expenseLine.accountCode;
+                if (expenseLine) expenseName = getAccountName(expenseLine.accountCode);
             }
             
             report.push({
@@ -1174,7 +1179,7 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                 reference: entry.reference,
                 partyName: entry.partyName || (isPayable ? 'ผู้ถูกหัก' : 'ผู้หัก'),
                 taxId: entry.taxId || '-',
-                description: expenseCode || entry.description,
+                description: expenseName || entry.description,
                 whtRate: rate,
                 baseAmount,
                 whtAmount: entry.whtAmount,
@@ -1231,7 +1236,7 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                             reference: dp.id,
                             partyName: partyName,
                             taxId: taxId,
-                            description: line.accountCode || line.description || dp.remarks || 'จ่ายเงินสดย่อย',
+                            description: (line.accountCode ? getAccountName(line.accountCode) : null) || line.description || dp.remarks || 'จ่ายเงินสดย่อย',
                             whtRate: lineRate,
                             baseAmount: Math.round(lineBase * 100) / 100,
                             whtAmount: lineWhtAmount,
@@ -1251,7 +1256,7 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                     reference: dp.id,
                     partyName: partyName,
                     taxId: taxId,
-                    description: dp.accountCode || dp.remarks || 'จ่ายเงินสดย่อย',
+                    description: (dp.accountCode ? getAccountName(dp.accountCode) : null) || dp.remarks || 'จ่ายเงินสดย่อย',
                     whtRate: rate,
                     baseAmount: Math.round(baseAmount * 100) / 100,
                     whtAmount: dp.whtAmount,
