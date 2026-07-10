@@ -10,8 +10,8 @@ if (window.location.protocol === 'file:') {
 }
 
 
-import * as db from './db.js?v=14';
-import * as store from './store.js?v=14';
+import * as db from './db.js?v=15';
+import * as store from './store.js?v=15';
 
 // Global variables for Chart instances
 let cashFlowChart = null;
@@ -1963,7 +1963,7 @@ async function renderExpenseCatalog() {
                 if (t) {
                     currentExpEditCode = code;
                     document.getElementById('exp-code').value = t.code;
-                    document.getElementById('exp-code').disabled = true; // Disable PK code
+                    document.getElementById('exp-code').disabled = false; // Enabled PK code for edit
                     document.getElementById('exp-name').value = t.name;
                     document.getElementById('exp-name-en').value = t.nameEn || '';
                     document.getElementById('exp-category').value = t.category || '01';
@@ -1999,7 +1999,13 @@ async function renderExpenseCatalog() {
                     const latestTemplates = await db.getAll('expenseCatalog');
                     const billExpenseAccountSelect = document.getElementById('bill-expense-account');
                     if (billExpenseAccountSelect) {
+                        if (window.jQuery && window.jQuery(billExpenseAccountSelect).hasClass('select2-hidden-accessible')) {
+                            window.jQuery(billExpenseAccountSelect).select2('destroy');
+                        }
                         billExpenseAccountSelect.innerHTML = latestTemplates.map(t => `<option value="${t.code}">${t.code} - ${t.name} (${t.accountCode})</option>`).join('');
+                        if (window.jQuery) {
+                            window.jQuery(billExpenseAccountSelect).select2({ width: '100%', dropdownAutoWidth: true });
+                        }
                     }
                 }
             });
@@ -2009,6 +2015,9 @@ async function renderExpenseCatalog() {
     // Populate Account select in the catalog form (only posting accounts)
     const accounts = await store.getAccounts();
     const expAccountSelect = document.getElementById('exp-account');
+    if (window.jQuery && window.jQuery(expAccountSelect).hasClass('select2-hidden-accessible')) {
+        window.jQuery(expAccountSelect).select2('destroy');
+    }
     expAccountSelect.innerHTML = '<option value="">-- เลือกบัญชีเดบิต --</option>';
     accounts.filter(a => a.type !== 'control').forEach(acc => {
         const opt = document.createElement('option');
@@ -2016,6 +2025,9 @@ async function renderExpenseCatalog() {
         opt.text = `${acc.code} - ${acc.name}`;
         expAccountSelect.appendChild(opt);
     });
+    if (window.jQuery) {
+        window.jQuery(expAccountSelect).select2({ width: '100%', dropdownAutoWidth: true });
+    }
     
     // Set default value if none is selected
     if (currentExpEditCode) {
@@ -2049,7 +2061,7 @@ async function renderInvoicesView() {
             document.querySelectorAll('.bill-payment-date').forEach(el => {
                 el.value = newDate;
             });
-            if (!editingBillId && typeof window.generateBillId === 'function') {
+            if (typeof window.generateBillId === 'function') {
                 const newId = await window.generateBillId(newDate);
                 const docNoEl = document.getElementById('bill-doc-no');
                 if (docNoEl) docNoEl.value = newId;
@@ -2145,11 +2157,11 @@ function renderInvoicesList(invoices) {
             <td class="num-col" style="font-size: 13px;">
                 <strong>${formatMoney(displayTotal)} ฿</strong><br>
                 <small style="color:var(--text-muted)">รับแล้ว: ${formatMoney(inv.amountPaid || 0)} ฿</small><br>
-                <small style="color:${inv.status === 'paid' ? 'var(--text-muted)' : 'var(--danger-color)'}; font-weight: 600;">ค้างรับ: ${formatMoney(outstanding)} ฿</small>
+                <small style="color:${outstanding <= 0.01 ? 'var(--text-muted)' : 'var(--danger-color)'}; font-weight: 600;">ค้างรับ: ${formatMoney(outstanding)} ฿</small>
             </td>
             <td>
-                <span class="status-badge ${inv.status === 'paid' ? 'paid' : 'unpaid'}">
-                    ${inv.status === 'paid' ? 'ชำระแล้ว' : 'ค้างชำระ'}
+                <span class="status-badge ${outstanding <= 0.01 ? 'paid' : 'unpaid'}">
+                    ${outstanding <= 0.01 ? 'ชำระแล้ว' : 'ค้างชำระ'}
                 </span>
             </td>
             <td>
@@ -2221,11 +2233,11 @@ function renderBillsList(bills) {
             <td class="num-col" style="font-size: 13px;">
                 <strong>${formatMoney(displayAmount)} ฿</strong><br>
                 <small style="color:var(--text-muted)">จ่ายแล้ว: ${formatMoney(bill.amountPaid || 0)} ฿</small><br>
-                <small style="color:${bill.status === 'paid' ? 'var(--text-muted)' : 'var(--danger-color)'}; font-weight: 600;">ค้างจ่าย: ${formatMoney(outstanding)} ฿</small>
+                <small style="color:${outstanding <= 0.01 ? 'var(--text-muted)' : 'var(--danger-color)'}; font-weight: 600;">ค้างจ่าย: ${formatMoney(outstanding)} ฿</small>
             </td>
             <td>
-                <span class="status-badge ${bill.status === 'paid' ? 'paid' : 'unpaid'}">
-                    ${bill.status === 'paid' ? 'จ่ายแล้ว' : 'ค้างจ่าย'}
+                <span class="status-badge ${outstanding <= 0.01 ? 'paid' : 'unpaid'}">
+                    ${outstanding <= 0.01 ? 'จ่ายแล้ว' : 'ค้างจ่าย'}
                 </span>
             </td>
             <td>
@@ -4345,13 +4357,27 @@ function bindUIActions() {
                     alert('รหัสค่าใช้จ่ายนี้มีอยู่แล้วในระบบ! โปรดระบุรหัสอื่น');
                     return;
                 }
+            } else if (currentExpEditCode !== code) {
+                const existing = await db.getByKey('expenseCatalog', code);
+                if (existing) {
+                    alert('รหัสค่าใช้จ่ายนี้มีอยู่แล้วในระบบ! โปรดระบุรหัสอื่น');
+                    return;
+                }
+                if (!confirm(`คุณต้องการเปลี่ยนรหัสค่าใช้จ่ายจาก ${currentExpEditCode} เป็น ${code} ใช่หรือไม่?\nการดำเนินการนี้จะเปลี่ยนรหัสค่าใช้จ่ายในเอกสารและประวัติธุรกรรมในอดีตทั้งหมดด้วย`)) {
+                    return;
+                }
             }
 
-            const item = { code, name, nameEn, category, unit, vatType, amount, remarks, accountCode };
-            await db.putItem('expenseCatalog', item);
-            showToast(currentExpEditCode ? 'แก้ไขข้อมูลแม่แบบเรียบร้อยแล้ว' : 'เพิ่มรหัสค่าใช้จ่ายใหม่เรียบร้อยแล้ว');
-            
-            clearExpenseCatalogForm();
+            try {
+                if (currentExpEditCode && currentExpEditCode !== code) {
+                    await db.renameExpenseCatalog(currentExpEditCode, code);
+                }
+                
+                const item = { code, name, nameEn, category, unit, vatType, amount, remarks, accountCode };
+                await db.putItem('expenseCatalog', item);
+                showToast(currentExpEditCode ? 'แก้ไขข้อมูลรหัสค่าใช้จ่ายเรียบร้อยแล้ว' : 'เพิ่มรหัสค่าใช้จ่ายใหม่เรียบร้อยแล้ว');
+                
+                clearExpenseCatalogForm();
             _expenseCatalog = []; // clear cache
             await renderExpenseCatalog();
             
@@ -4359,7 +4385,13 @@ function bindUIActions() {
             const latestTemplates = await db.getAll('expenseCatalog');
             const billExpenseAccountSelect = document.getElementById('bill-expense-account');
             if (billExpenseAccountSelect) {
+                if (window.jQuery && window.jQuery(billExpenseAccountSelect).hasClass('select2-hidden-accessible')) {
+                    window.jQuery(billExpenseAccountSelect).select2('destroy');
+                }
                 billExpenseAccountSelect.innerHTML = latestTemplates.map(t => `<option value="${t.code}">${t.code} - ${t.name} (${t.accountCode})</option>`).join('');
+                if (window.jQuery) {
+                    window.jQuery(billExpenseAccountSelect).select2({ width: '100%', dropdownAutoWidth: true });
+                }
             }
             
             // Also update all existing dynamic rows in the bill form
@@ -4371,6 +4403,12 @@ function bindUIActions() {
                 });
                 select.innerHTML = html;
             });
+            
+            
+            } catch (err) {
+                console.error(err);
+                alert('เกิดข้อผิดพลาดในการเปลี่ยนรหัส: ' + err.message);
+            }
         });
 
         document.getElementById('btn-exp-cancel').addEventListener('click', () => {
@@ -5120,13 +5158,31 @@ function bindUIActions() {
                     alert('รหัสช่องทางการเงินนี้มีอยู่แล้วในระบบ! โปรดระบุรหัสอื่น');
                     return;
                 }
+            } else if (currentPmEditCode !== code) {
+                const existing = await db.getByKey('paymentMethods', code);
+                if (existing) {
+                    alert('รหัสช่องทางการเงินนี้มีอยู่แล้วในระบบ! โปรดระบุรหัสอื่น');
+                    return;
+                }
+                if (!confirm(`คุณต้องการเปลี่ยนรหัสช่องทางการเงินจาก ${currentPmEditCode} เป็น ${code} ใช่หรือไม่?\nการดำเนินการนี้จะเปลี่ยนรหัสช่องทางการเงินในเอกสารและประวัติธุรกรรมในอดีตทั้งหมดด้วย`)) {
+                    return;
+                }
             }
 
-            const item = { code, name, nameEn, type, accountCode, isCheque, bankCode };
-            await db.putItem('paymentMethods', item);
-            showToast(currentPmEditCode ? 'แก้ไขวิธีการชำระเงินเรียบร้อยแล้ว' : 'เพิ่มวิธีการชำระเงินเรียบร้อยแล้ว');
-            clearPaymentMethodForm();
-            await renderPaymentMethods();
+            try {
+                if (currentPmEditCode && currentPmEditCode !== code) {
+                    await db.renamePaymentMethod(currentPmEditCode, code);
+                }
+                
+                const item = { code, name, nameEn, type, accountCode, isCheque, bankCode };
+                await db.putItem('paymentMethods', item);
+                showToast(currentPmEditCode ? 'แก้ไขวิธีการชำระเงินเรียบร้อยแล้ว' : 'เพิ่มวิธีการชำระเงินเรียบร้อยแล้ว');
+                clearPaymentMethodForm();
+                await renderPaymentMethods();
+            } catch (err) {
+                console.error(err);
+                alert('เกิดข้อผิดพลาดในการเปลี่ยนรหัส: ' + err.message);
+            }
         });
     }
 
@@ -6216,9 +6272,6 @@ function renderWhtTable(data) {
             <td>${row.taxId}</td>
             <td>
                 <span style="font-size:12px;">${row.description}</span>
-                <span class="status-badge ${row.isPayable ? 'unpaid' : 'paid'}" style="font-size: 10px; padding: 2px 6px; margin-left: 6px;">
-                    ${row.isPayable ? 'เราหักผู้อื่นไว้' : 'เราถูกหักไว้'}
-                </span>
             </td>
             <td class="num-col">${row.whtRate}%</td>
             <td class="num-col">${formatMoney(row.baseAmount)} ฿</td>
@@ -6555,7 +6608,7 @@ async function renderPaymentMethods() {
                 const pmCodeInput = document.getElementById('pm-code');
                 if (pmCodeInput) {
                     pmCodeInput.value = pm.code;
-                    pmCodeInput.disabled = true;
+                    pmCodeInput.disabled = false;
                 }
                 const pmNameInput = document.getElementById('pm-name');
                 if (pmNameInput) pmNameInput.value = pm.name;
@@ -9967,7 +10020,9 @@ async function startEditInvoice(id) {
     setFormEditMode('invoice-form', true, id, resetInvoiceForm);
     
     document.getElementById('inv-customer-select').value = 'manual';
-    document.getElementById('inv-customer-name').value = inv.customerName || '';
+    const invCustomerNameEl = document.getElementById('inv-customer-name');
+    invCustomerNameEl.value = inv.customerName || '';
+    invCustomerNameEl.style.display = 'block';
     document.getElementById('inv-tax-id').value = inv.taxId || '';
     document.getElementById('inv-address').value = inv.address || '';
     document.getElementById('inv-date').value = inv.date;
@@ -10057,7 +10112,9 @@ async function startEditBill(id) {
     setFormEditMode('bill-form', true, id, resetBillForm);
     
     document.getElementById('bill-vendor-select').value = 'manual';
-    document.getElementById('bill-vendor-name').value = bill.vendorName || bill.vendor_name || '';
+    const billVendorNameEl = document.getElementById('bill-vendor-name');
+    billVendorNameEl.value = bill.vendorName || bill.vendor_name || '';
+    billVendorNameEl.style.display = 'block';
     document.getElementById('bill-tax-id').value = bill.taxId || bill.tax_id || '';
     const addrEl = document.getElementById('bill-address');
     if (addrEl) addrEl.value = bill.address || '';
@@ -10741,6 +10798,9 @@ window.openQuickAddExpenseCatalog = async function() {
                 });
             } else {
                 selectEl.innerHTML = '<option value="">-- ไม่พบบัญชีค่าใช้จ่าย --</option>';
+            }
+            if (window.jQuery) {
+                window.jQuery(selectEl).select2('destroy').select2({ width: '100%', dropdownAutoWidth: true, dropdownParent: window.jQuery('#modal-quick-add-expense-catalog') });
             }
         }
         

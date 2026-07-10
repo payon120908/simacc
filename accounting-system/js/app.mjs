@@ -1999,7 +1999,13 @@ async function renderExpenseCatalog() {
                     const latestTemplates = await db.getAll('expenseCatalog');
                     const billExpenseAccountSelect = document.getElementById('bill-expense-account');
                     if (billExpenseAccountSelect) {
+                        if (window.jQuery && window.jQuery(billExpenseAccountSelect).hasClass('select2-hidden-accessible')) {
+                            window.jQuery(billExpenseAccountSelect).select2('destroy');
+                        }
                         billExpenseAccountSelect.innerHTML = latestTemplates.map(t => `<option value="${t.code}">${t.code} - ${t.name} (${t.accountCode})</option>`).join('');
+                        if (window.jQuery) {
+                            window.jQuery(billExpenseAccountSelect).select2({ width: '100%', dropdownAutoWidth: true });
+                        }
                     }
                 }
             });
@@ -2009,6 +2015,9 @@ async function renderExpenseCatalog() {
     // Populate Account select in the catalog form (only posting accounts)
     const accounts = await store.getAccounts();
     const expAccountSelect = document.getElementById('exp-account');
+    if (window.jQuery && window.jQuery(expAccountSelect).hasClass('select2-hidden-accessible')) {
+        window.jQuery(expAccountSelect).select2('destroy');
+    }
     expAccountSelect.innerHTML = '<option value="">-- เลือกบัญชีเดบิต --</option>';
     accounts.filter(a => a.type !== 'control').forEach(acc => {
         const opt = document.createElement('option');
@@ -2016,6 +2025,9 @@ async function renderExpenseCatalog() {
         opt.text = `${acc.code} - ${acc.name}`;
         expAccountSelect.appendChild(opt);
     });
+    if (window.jQuery) {
+        window.jQuery(expAccountSelect).select2({ width: '100%', dropdownAutoWidth: true });
+    }
     
     // Set default value if none is selected
     if (currentExpEditCode) {
@@ -4298,7 +4310,13 @@ function bindUIActions() {
             const latestTemplates = await db.getAll('expenseCatalog');
             const billExpenseAccountSelect = document.getElementById('bill-expense-account');
             if (billExpenseAccountSelect) {
+                if (window.jQuery && window.jQuery(billExpenseAccountSelect).hasClass('select2-hidden-accessible')) {
+                    window.jQuery(billExpenseAccountSelect).select2('destroy');
+                }
                 billExpenseAccountSelect.innerHTML = latestTemplates.map(t => `<option value="${t.code}">${t.code} - ${t.name} (${t.accountCode})</option>`).join('');
+                if (window.jQuery) {
+                    window.jQuery(billExpenseAccountSelect).select2({ width: '100%', dropdownAutoWidth: true });
+                }
             }
             
             // Also update all existing dynamic rows in the bill form
@@ -6136,9 +6154,6 @@ function renderWhtTable(data) {
             <td>${row.taxId}</td>
             <td>
                 <span style="font-size:12px;">${row.description}</span>
-                <span class="status-badge ${row.isPayable ? 'unpaid' : 'paid'}" style="font-size: 10px; padding: 2px 6px; margin-left: 6px;">
-                    ${row.isPayable ? 'เราหักผู้อื่นไว้' : 'เราถูกหักไว้'}
-                </span>
             </td>
             <td class="num-col">${row.whtRate}%</td>
             <td class="num-col">${formatMoney(row.baseAmount)} ฿</td>
@@ -10638,6 +10653,9 @@ window.openQuickAddExpenseCatalog = async function() {
                 });
             } else {
                 selectEl.innerHTML = '<option value="">-- ไม่พบบัญชีค่าใช้จ่าย --</option>';
+            }
+            if (window.jQuery) {
+                window.jQuery(selectEl).select2('destroy').select2({ width: '100%', dropdownAutoWidth: true, dropdownParent: window.jQuery('#modal-quick-add-expense-catalog') });
             }
         }
         

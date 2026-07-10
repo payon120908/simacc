@@ -792,7 +792,7 @@ def lookup_vat_rd(tax_id):
 
 class APIRouter:
     def handle_request(self, handler, method, parsed_url, body_data):
-        path_parts = [p for p in parsed_url.path.split('/') if p]
+        path_parts = [urllib.parse.unquote(p) for p in parsed_url.path.split('/') if p]
         
         # Helper to respond with JSON
         def send_json(data, status=200):
@@ -1261,6 +1261,126 @@ class APIRouter:
                             except Exception as e:
                                 print(f"Error updating balance_sheet_mapping setting: {e}")
                                 
+                        conn.commit()
+                        send_json({"success": True})
+                    except Exception as e:
+                        conn.rollback()
+                        traceback.print_exc()
+                        send_error(e)
+                    finally:
+                        conn.close()
+                    return True
+
+            if len(path_parts) == 4 and path_parts[0] == 'api' and path_parts[1] == 'expense-catalog' and path_parts[3] == 'rename':
+                company_code = path_parts[2]
+                if method == 'POST':
+                    data = json.loads(body_data)
+                    old_code = data.get('oldCode')
+                    new_code = data.get('newCode')
+                    if not old_code or not new_code:
+                        send_json({"message": "oldCode and newCode required"}, 400)
+                        return True
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    try:
+                        row = cursor.execute("SELECT 1 FROM expense_catalog WHERE company_code = ? AND code = ?", (company_code, old_code)).fetchone()
+                        if not row:
+                            send_json({"message": f"Expense catalog code {old_code} not found"}, 404)
+                            conn.close()
+                            return True
+                        
+                        row = cursor.execute("SELECT 1 FROM expense_catalog WHERE company_code = ? AND code = ?", (company_code, new_code)).fetchone()
+                        if row:
+                            send_json({"message": f"Expense catalog code {new_code} already exists"}, 400)
+                            conn.close()
+                            return True
+                        
+                        # Update expense_catalog
+                        cursor.execute("UPDATE expense_catalog SET code = ? WHERE company_code = ? AND code = ?", (new_code, company_code, old_code))
+                        
+                        # Update bills items JSON
+                        bills = cursor.execute("SELECT id, items FROM bills WHERE company_code = ?", (company_code,)).fetchall()
+                        for b in bills:
+                            b_id, items_json = b['id'], b['items']
+                            if items_json:
+                                try:
+                                    items = json.loads(items_json)
+                                    changed = False
+                                    for item in items:
+                                        if item.get('code') == old_code:
+                                            item['code'] = new_code
+                                            changed = True
+                                    if changed:
+                                        cursor.execute("UPDATE bills SET items = ? WHERE company_code = ? AND id = ?", (json.dumps(items), company_code, b_id))
+                                except Exception as e:
+                                    print(f"Error updating bills items: {e}")
+                                    
+                        # Update petty_cash_payments lines JSON
+                        payments = cursor.execute("SELECT id, lines FROM petty_cash_payments WHERE company_code = ?", (company_code,)).fetchall()
+                        for p in payments:
+                            p_id = p['id']
+                            lines_str = p['lines']
+                            if lines_str:
+                                try:
+                                    lines_list = json.loads(lines_str)
+                                    changed = False
+                                    for line in lines_list:
+                                        if line.get('expense_account_code') == old_code:
+                                            line['expense_account_code'] = new_code
+                                            changed = True
+                                    if changed:
+                                        cursor.execute("UPDATE petty_cash_payments SET lines = ? WHERE company_code = ? AND id = ?", (json.dumps(lines_list), company_code, p_id))
+                                except Exception as e:
+                                    print(f"Error updating petty_cash_payments line: {e}")
+                                    
+                        conn.commit()
+                        send_json({"success": True})
+                    except Exception as e:
+                        conn.rollback()
+                        traceback.print_exc()
+                        send_error(e)
+                    finally:
+                        conn.close()
+                    return True
+                    
+            if len(path_parts) == 4 and path_parts[0] == 'api' and path_parts[1] == 'payment-methods' and path_parts[3] == 'rename':
+                company_code = path_parts[2]
+                if method == 'POST':
+                    data = json.loads(body_data)
+                    old_code = data.get('oldCode')
+                    new_code = data.get('newCode')
+                    if not old_code or not new_code:
+                        send_json({"message": "oldCode and newCode required"}, 400)
+                        return True
+                    
+                    conn = get_db()
+                    cursor = conn.cursor()
+                    try:
+                        row = cursor.execute("SELECT 1 FROM payment_methods WHERE company_code = ? AND code = ?", (company_code, old_code)).fetchone()
+                        if not row:
+                            send_json({"message": f"Payment method code {old_code} not found"}, 404)
+                            conn.close()
+                            return True
+                        
+                        row = cursor.execute("SELECT 1 FROM payment_methods WHERE company_code = ? AND code = ?", (company_code, new_code)).fetchone()
+                        if row:
+                            send_json({"message": f"Payment method code {new_code} already exists"}, 400)
+                            conn.close()
+                            return True
+                        
+                        # Update payment_methods
+                        cursor.execute("UPDATE payment_methods SET code = ? WHERE company_code = ? AND code = ?", (new_code, company_code, old_code))
+                        
+                        # Update ar_receipts
+                        cursor.execute("UPDATE ar_receipts SET payment_method = ? WHERE company_code = ? AND payment_method = ?", (new_code, company_code, old_code))
+                        
+                        # Update ap_payments
+                        cursor.execute("UPDATE ap_payments SET payment_method = ? WHERE company_code = ? AND payment_method = ?", (new_code, company_code, old_code))
+                        
+                        # Update petty_cash_reimbursements
+                        cursor.execute("UPDATE petty_cash_reimbursements SET payment_method = ? WHERE company_code = ? AND payment_method = ?", (new_code, company_code, old_code))
+                        
                         conn.commit()
                         send_json({"success": True})
                     except Exception as e:

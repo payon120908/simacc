@@ -249,6 +249,36 @@ export async function renameAccount(oldCode, newCode) {
     return true;
 }
 
+export async function renameExpenseCatalog(oldCode, newCode) {
+    const companyCode = getActiveCompanyCode();
+    const res = await fetch(`/api/expense-catalog/${companyCode}/rename`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldCode, newCode })
+    });
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to rename expense catalog code');
+    }
+    notifyDbChanged('expenseCatalog');
+    return true;
+}
+
+export async function renamePaymentMethod(oldCode, newCode) {
+    const companyCode = getActiveCompanyCode();
+    const res = await fetch(`/api/payment-methods/${companyCode}/rename`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldCode, newCode })
+    });
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to rename payment method code');
+    }
+    notifyDbChanged('paymentMethods');
+    return true;
+}
+
 export async function copyCoaToCompany(fromCompanyCode, toCompanyCode) {
     const res = await fetch('/api/accounts/copy-to-company', {
         method: 'POST',
