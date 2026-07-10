@@ -1160,8 +1160,11 @@ export async function getWithholdingTaxReport(startDate, endDate) {
             // Extract expense name
             let expenseName = '';
             if (rate > 0) {
-                const expenseLine = entry.lines.find(l => l.debit > 0 && String(l.accountCode).startsWith('5'));
-                if (expenseLine) expenseName = getAccountName(expenseLine.accountCode);
+                const expenseLines = entry.lines.filter(l => l.debit > 0 && String(l.accountCode).startsWith('5'));
+                if (expenseLines.length > 0) {
+                    const names = expenseLines.map(l => getAccountName(l.accountCode));
+                    expenseName = [...new Set(names)].join(', ');
+                }
             } else {
                 const excludedCodes = [
                     mappings.cash, '1111-00', '1112-00',
@@ -1170,8 +1173,11 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                     mappings.sales_vat, '2151-00',
                     mappings.wht_payable, mappings.wht_payable_pnd1, mappings.wht_payable_pnd3, mappings.wht_payable_pnd53, '2161-00', '2110-01', '2110-02', '2110-03'
                 ];
-                const expenseLine = entry.lines.find(l => !excludedCodes.includes(l.accountCode) && l.debit > 0);
-                if (expenseLine) expenseName = getAccountName(expenseLine.accountCode);
+                const expenseLines = entry.lines.filter(l => !excludedCodes.includes(l.accountCode) && l.debit > 0);
+                if (expenseLines.length > 0) {
+                    const names = expenseLines.map(l => getAccountName(l.accountCode));
+                    expenseName = [...new Set(names)].join(', ');
+                }
             }
             
             report.push({
@@ -1179,7 +1185,7 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                 reference: entry.reference,
                 partyName: entry.partyName || (isPayable ? 'ผู้ถูกหัก' : 'ผู้หัก'),
                 taxId: entry.taxId || '-',
-                description: expenseName || entry.description,
+                description: expenseName ? `${expenseName} (${entry.description})` : entry.description,
                 whtRate: rate,
                 baseAmount,
                 whtAmount: entry.whtAmount,
@@ -1231,12 +1237,15 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                         if (dp.vatType === 'include') {
                             lineBase = line.amount / 1.07;
                         }
+                        const expName = line.accountCode ? getAccountName(line.accountCode) : null;
+                        const origDesc = line.description || dp.remarks || 'จ่ายเงินสดย่อย';
+                        
                         report.push({
                             date: dp.date,
                             reference: dp.id,
                             partyName: partyName,
                             taxId: taxId,
-                            description: (line.accountCode ? getAccountName(line.accountCode) : null) || line.description || dp.remarks || 'จ่ายเงินสดย่อย',
+                            description: expName ? `${expName} (${origDesc})` : origDesc,
                             whtRate: lineRate,
                             baseAmount: Math.round(lineBase * 100) / 100,
                             whtAmount: lineWhtAmount,
@@ -1251,12 +1260,15 @@ export async function getWithholdingTaxReport(startDate, endDate) {
                     baseAmount = dp.totalAmount - dp.vatAmount;
                 }
                 const rate = parseFloat(dp.whtType) || 0;
+                const expName = dp.accountCode ? getAccountName(dp.accountCode) : null;
+                const origDesc = dp.remarks || 'จ่ายเงินสดย่อย';
+                
                 report.push({
                     date: dp.date,
                     reference: dp.id,
                     partyName: partyName,
                     taxId: taxId,
-                    description: (dp.accountCode ? getAccountName(dp.accountCode) : null) || dp.remarks || 'จ่ายเงินสดย่อย',
+                    description: expName ? `${expName} (${origDesc})` : origDesc,
                     whtRate: rate,
                     baseAmount: Math.round(baseAmount * 100) / 100,
                     whtAmount: dp.whtAmount,
