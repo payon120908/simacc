@@ -10671,7 +10671,7 @@ window.openQuickAddExpenseCatalog = async function() {
             selectEl.innerHTML = '';
             const accounts = await db.getAll('accounts');
             if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DEBUG 3...';
-            const expenseAccs = accounts.filter(a => a.category === 'expense' && a.type === 'posting');
+            const expenseAccs = accounts.filter(a => a.type !== 'control');
             
             if (expenseAccs.length > 0) {
                 expenseAccs.forEach(acc => {

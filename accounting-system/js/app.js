@@ -10815,7 +10815,7 @@ window.openQuickAddExpenseCatalog = async function() {
         if (selectEl) {
             selectEl.innerHTML = '<option value="">กำลังโหลดบัญชี...</option>';
             const accounts = await db.getAll('accounts');
-            const expenseAccs = accounts.filter(a => a.category === 'expense' && a.type === 'posting');
+            const expenseAccs = accounts.filter(a => a.type !== 'control');
             
             selectEl.innerHTML = '';
             if (expenseAccs.length > 0) {
