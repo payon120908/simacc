@@ -5582,6 +5582,7 @@ function bindUIActions() {
         currentTaxTab = 'sales';
         document.getElementById('tax-subtab-sales-btn').className = 'btn btn-primary';
         document.getElementById('tax-subtab-purchase-btn').className = 'btn btn-secondary';
+        if (document.getElementById('tax-subtab-wht1-btn')) document.getElementById('tax-subtab-wht1-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-wht3-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-wht53-btn').className = 'btn btn-secondary';
         document.getElementById('card-tax-report-sales').style.display = 'block';
@@ -5594,6 +5595,7 @@ function bindUIActions() {
         currentTaxTab = 'purchase';
         document.getElementById('tax-subtab-sales-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-purchase-btn').className = 'btn btn-primary';
+        if (document.getElementById('tax-subtab-wht1-btn')) document.getElementById('tax-subtab-wht1-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-wht3-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-wht53-btn').className = 'btn btn-secondary';
         document.getElementById('card-tax-report-sales').style.display = 'none';
@@ -5602,10 +5604,26 @@ function bindUIActions() {
         executeTaxReportQuery();
     });
 
+    if (document.getElementById('tax-subtab-wht1-btn')) {
+        document.getElementById('tax-subtab-wht1-btn').addEventListener('click', () => {
+            currentTaxTab = 'wht1';
+            document.getElementById('tax-subtab-sales-btn').className = 'btn btn-secondary';
+            document.getElementById('tax-subtab-purchase-btn').className = 'btn btn-secondary';
+            document.getElementById('tax-subtab-wht1-btn').className = 'btn btn-primary';
+            document.getElementById('tax-subtab-wht3-btn').className = 'btn btn-secondary';
+            document.getElementById('tax-subtab-wht53-btn').className = 'btn btn-secondary';
+            document.getElementById('card-tax-report-sales').style.display = 'none';
+            document.getElementById('card-tax-report-purchase').style.display = 'none';
+            document.getElementById('card-tax-report-wht').style.display = 'block';
+            executeTaxReportQuery();
+        });
+    }
+
     document.getElementById('tax-subtab-wht3-btn').addEventListener('click', () => {
         currentTaxTab = 'wht3';
         document.getElementById('tax-subtab-sales-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-purchase-btn').className = 'btn btn-secondary';
+        if (document.getElementById('tax-subtab-wht1-btn')) document.getElementById('tax-subtab-wht1-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-wht3-btn').className = 'btn btn-primary';
         document.getElementById('tax-subtab-wht53-btn').className = 'btn btn-secondary';
         document.getElementById('card-tax-report-sales').style.display = 'none';
@@ -5618,6 +5636,7 @@ function bindUIActions() {
         currentTaxTab = 'wht53';
         document.getElementById('tax-subtab-sales-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-purchase-btn').className = 'btn btn-secondary';
+        if (document.getElementById('tax-subtab-wht1-btn')) document.getElementById('tax-subtab-wht1-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-wht3-btn').className = 'btn btn-secondary';
         document.getElementById('tax-subtab-wht53-btn').className = 'btn btn-primary';
         document.getElementById('card-tax-report-sales').style.display = 'none';
@@ -6152,6 +6171,13 @@ async function executeTaxReportQuery() {
     } else if (currentTaxTab === 'purchase') {
         const data = await store.getPurchaseVatReport(start, end);
         renderPurchaseVatTable(data);
+    } else if (currentTaxTab === 'wht1') {
+        const data = await store.getWithholdingTaxReport(start, end);
+        const filteredData = data.filter(d => d.pndType === '1');
+        document.getElementById('tax-report-wht-title').innerHTML = '<i class="fa-solid fa-hand-holding-dollar"></i> รายงานภาษีเงินได้หัก ณ ที่จ่าย (ภ.ง.ด.1)';
+        const btnExport = document.querySelector('.btn-export-csv[data-table="tax-wht-table"]');
+        if (btnExport) btnExport.setAttribute('data-filename', 'wht1_report');
+        renderWhtTable(filteredData);
     } else if (currentTaxTab === 'wht3') {
         const data = await store.getWithholdingTaxReport(start, end);
         const filteredData = data.filter(d => d.pndType === '3');
@@ -10841,12 +10867,16 @@ if (elPcReimDate) {
 // RDPrep EXPORT
 // =========================================================================
 window.exportRDPrep = async function(start, end, pndTypeStr) {
-    if (pndTypeStr !== 'wht3' && pndTypeStr !== 'wht53') {
-        alert('กรุณาเลือกรายงาน ภ.ง.ด.3 หรือ ภ.ง.ด.53 ก่อนทำการส่งออก RDPrep');
+    if (pndTypeStr !== 'wht1' && pndTypeStr !== 'wht3' && pndTypeStr !== 'wht53') {
+        alert('กรุณาเลือกรายงาน ภ.ง.ด.1, ภ.ง.ด.3 หรือ ภ.ง.ด.53 ก่อนทำการส่งออก RDPrep');
         return;
     }
 
-    const typeFilter = pndTypeStr === 'wht3' ? '3' : '53';
+    let typeFilter = '';
+    if (pndTypeStr === 'wht1') typeFilter = '1';
+    else if (pndTypeStr === 'wht3') typeFilter = '3';
+    else if (pndTypeStr === 'wht53') typeFilter = '53';
+    
     const data = await store.getWithholdingTaxReport(start, end);
     const filteredData = data.filter(d => d.pndType === typeFilter);
 
@@ -10865,7 +10895,7 @@ window.exportRDPrep = async function(start, end, pndTypeStr) {
         let firstName = '';
         let lastName = '';
 
-        if (typeFilter === '3') {
+        if (typeFilter === '3' || typeFilter === '1') {
             // For individuals
             const prefixes = ['นางสาว', 'น.ส.', 'นาง', 'ด.ญ.', 'นาย', 'ด.ช.'];
             let foundPrefix = false;
