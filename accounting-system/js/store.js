@@ -598,7 +598,7 @@ export function resolveWhtPayableAccount(accounts, mappings, contactName, taxId,
     const desc = descriptionText || '';
     
     // PND 1: Salary
-    if (desc.includes('เงินเดือน') || desc.includes('ค่าจ้าง') || desc.includes('โบนัส')) {
+    if (desc.includes('เงินเดือน') || desc.includes('โบนัส')) {
         return findValidAccount(accounts, mappings.wht_payable_pnd1 || mappings.wht_payable, '2', '2110-01');
     }
     
