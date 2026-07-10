@@ -1151,7 +1151,9 @@ export async function getWithholdingTaxReport(startDate, endDate) {
             }
 
             let pndType = 'other';
-            if (entry.lines.some(l => l.accountCode === mappings.wht_payable_pnd3 || l.accountCode === '2110-02')) {
+            if (entry.lines.some(l => l.accountCode === mappings.wht_payable_pnd1 || l.accountCode === '2110-01')) {
+                pndType = '1';
+            } else if (entry.lines.some(l => l.accountCode === mappings.wht_payable_pnd3 || l.accountCode === '2110-02')) {
                 pndType = '3';
             } else if (entry.lines.some(l => l.accountCode === mappings.wht_payable_pnd53 || l.accountCode === '2110-03' || l.accountCode === mappings.wht_payable)) {
                 pndType = '53';
